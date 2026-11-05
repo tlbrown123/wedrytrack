@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b4f8a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="WedryTrack">
+<title>WedryTrack 1.0</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{
+  --blue:#0b4f8a; --blue2:#1767ad; --ink:#17202a; --muted:#5c6773; --line:#d9dee4; --bg:#f3f5f8; --card:#fff;
+  --dry:#d8f1df; --dryink:#17663a; --wet:#fbdcdc; --wetink:#9b1c1c; --na:#eef0f3; --warn:#fff2cc;
+  --r:10px;
+}
+*{box-sizing:border-box}
+html,body{overflow-x:hidden;margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+header.top{position:sticky;top:0;z-index:20;background:var(--blue);color:#fff;padding:calc(env(safe-area-inset-top) + 10px) 14px 10px;display:flex;align-items:center;gap:10px}
+header.top h1{font-size:17px;margin:0;font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header.top .back{background:none;border:0;color:#fff;font-size:22px;padding:0 6px 0 0;cursor:pointer}
+.chip{font-size:12px;padding:3px 8px;border-radius:99px;background:rgba(255,255,255,.18);white-space:nowrap;cursor:pointer;border:0;color:#fff}
+.chip.ok{background:#2e8b57}.chip.pend{background:#b7791f}.chip.off{background:#6b7280}
+main{max-width:1100px;margin:0 auto;padding:12px 12px calc(env(safe-area-inset-bottom) + 80px)}
+.tabs{position:sticky;top:calc(env(safe-area-inset-top) + 48px);z-index:15;background:var(--bg);display:flex;gap:4px;overflow-x:auto;padding:8px 12px;border-bottom:1px solid var(--line);scrollbar-width:none}
+.tabs button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:6px 12px;white-space:nowrap;cursor:pointer}
+.tabs button.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px;margin-bottom:12px}
+.card h2{font-size:16px;margin:0 0 8px}.card h3{font-size:15px;margin:0 0 6px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.grow{flex:1}
+.btn{border:1px solid var(--blue);background:var(--blue);color:#fff;border-radius:8px;padding:9px 14px;cursor:pointer;font-weight:600}
+.btn.sec{background:#fff;color:var(--blue)}
+.btn.sm{padding:5px 10px;font-size:13px}
+.btn.danger{background:#fff;color:#b42318;border-color:#b42318}
+.btn:disabled{opacity:.5;cursor:default}
+label.f{display:block;font-size:12px;color:var(--muted);margin-bottom:8px}
+label.f input,label.f select,label.f textarea{display:block;width:100%;margin-top:3px;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-size:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+@media(max-width:560px){.grid2{grid-template-columns:1fr}}
+.muted{color:var(--muted)}.small{font-size:12px}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--na);color:var(--muted)}
+.pill.Drying{background:#dbeafe;color:#1e40af}.pill.Dry{background:var(--dry);color:var(--dryink)}.pill.Closed{background:#e5e7eb;color:#374151}
+.pill.dry{background:var(--dry);color:var(--dryink)}.pill.wet{background:var(--wet);color:var(--wetink)}
+.jobcard{cursor:pointer}
+.jobcard:hover{border-color:var(--blue2)}
+.bar{height:6px;background:var(--na);border-radius:3px;overflow:hidden;margin-top:6px}.bar>i{display:block;height:100%;background:#2e8b57}
+.banner{padding:10px 12px;border-radius:8px;margin-bottom:12px;font-weight:600}
+.banner.ready{background:var(--dry);color:var(--dryink)}.banner.info{background:#e8f1fb;color:var(--blue)}.banner.warn{background:var(--warn);color:#7a5b00}
+/* entry list */
+.pt{display:grid;grid-template-columns:1fr 92px;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.pt:first-of-type{border-top:0}
+.pt .lbl{font-weight:600}
+.pt input{width:92px;padding:10px 8px;font-size:18px;text-align:center;border:2px solid var(--line);border-radius:8px;background:#fff}
+.pt input.dry{background:var(--dry);border-color:#7cc596}.pt input.wet{background:var(--wet);border-color:#e59a9a}
+.trend{font-weight:700}.trend.down{color:#17663a}.trend.up{color:#b42318}.trend.flat{color:var(--muted)}
+/* tables */
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:8px;background:#fff}
+table.g{border-collapse:separate;border-spacing:0;font-size:13px;min-width:100%}
+table.g th,table.g td{padding:6px 8px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);text-align:center;white-space:nowrap}
+table.g th{background:#f7f9fb;font-weight:600;position:sticky;top:0}
+table.g td.l,table.g th.l{text-align:left;position:sticky;left:0;background:#fff;z-index:1;max-width:210px;white-space:normal;min-width:150px}
+table.g th.l{background:#f7f9fb;z-index:2}
+table.g tr.room td{background:#eef3f9;font-weight:700;text-align:left}
+table.g tr.room td.l{background:#eef3f9}
+td.dry{background:var(--dry);color:var(--dryink)}td.wet{background:var(--wet);color:var(--wetink)}
+td .tr{font-size:11px;margin-left:2px}
+/* modal */
+.modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+@media(min-width:640px){.modal-bg{align-items:center}}
+.modal{background:#fff;width:100%;max-width:520px;max-height:92vh;overflow:auto;border-radius:14px 14px 0 0;padding:16px 16px calc(env(safe-area-inset-bottom) + 16px)}
+@media(min-width:640px){.modal{border-radius:14px}}
+.modal h2{margin:0 0 12px;font-size:17px}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 20px);transform:translateX(-50%);background:#111827;color:#fff;padding:10px 16px;border-radius:8px;z-index:60;font-size:14px;max-width:90vw}
+.fab{position:fixed;right:16px;bottom:calc(env(safe-area-inset-bottom) + 16px);z-index:30;border-radius:99px;padding:14px 20px;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+.atmo{display:grid;grid-template-columns:1fr 74px 64px;gap:6px 8px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.atmo input{width:100%;padding:9px 6px;font-size:17px;text-align:center;border:2px solid var(--line);border-radius:8px}
+.calc{grid-column:1/-1;font-size:13px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap}
+.calc b{color:var(--ink)}
+.gd{color:var(--dryink);font-weight:700}.gd.bad{color:var(--wetink)}
+.empty{text-align:center;color:var(--muted);padding:28px 10px}
+/* report preview (DryTrack-style layout) */
+.rep{background:#fff;color:#000;font:12px/1.3 "Times New Roman",Times,serif;overflow-x:auto}
+.rep .rh{display:grid;grid-template-columns:1fr 2fr 1fr;align-items:start;gap:8px}
+.rep .rh-c{text-align:center;font-size:12px}.rep .rt{color:#2f5e96;font-weight:700;font-size:22px;margin-bottom:2px}
+.rep .info{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:16px 0}
+@media(max-width:640px){.rep .info{grid-template-columns:1fr}.rep .rh{grid-template-columns:1fr}}
+.rep .it{color:#2f5e96;font-weight:700;font-size:13px;margin-bottom:4px}
+.rep .ir{display:grid;grid-template-columns:110px 1fr;gap:4px;font-size:11.5px;margin-bottom:2px}.rep .ir i{color:#2f5e96;font-size:10px}
+.rep .sec{border:1px solid #000;margin-bottom:12px}
+.rep .st{background:#ddf3f7;font-weight:700;padding:5px 7px;border-bottom:1px solid #000}
+.rep .pt2{background:#6a8faf;color:#fff;font-weight:700;padding:4px 7px;border-top:2px solid #fff}
+.rep table{border-collapse:collapse;width:100%}
+.rep th{background:#6a8faf;color:#fff;font-weight:700;text-align:left;padding:4px 6px;border:1px dotted #fff;white-space:pre-line}
+.rep td{padding:3px 6px;border:1px dotted #888;text-align:left}
+.rep tbody tr:nth-child(even) td{background-color:#e6e6e6}
+.rep tr.sep td{border-top:2.5px solid #000}
+.rep .rn{font-style:italic;font-size:10.5px;color:#444;padding:4px 7px}
+.rep .sig{display:grid;grid-template-columns:2fr 1fr;gap:30px;margin-top:34px}
+.rep .sig div{border-top:1px solid #000;padding-top:3px;font-size:11px}
+@media print{
+  header.top,.tabs,.noprint,.fab,.toast{display:none!important}
+  body,main{background:#fff;padding:0;margin:0;max-width:none}
+  .card{border:0;padding:0}
+  .rep table{page-break-inside:auto}.rep tr{page-break-inside:avoid}
+  @page{size:letter;margin:.5in}
+}
+</style>
+</head>
+<body>
+<header class="top" id="hdr"></header>
+<div id="tabs"></div>
+<main id="main"></main>
+<div id="modal"></div>
+<script>
+/*__LIBS__*/
+</script>
+<script src="config.js"></script>
+<script>
+"use strict";
+/* ===================== WedryTrack 1.0 ===================== */
+const APP = "WedryTrack 1.0";
+const LS_KEY = "wedrytrack.v1";
+const MATERIALS = ["Drywall","Framing","Wood subfloor","Hardwood","Laminate","Tile","Carpet","Carpet pad","Concrete","Plaster","Cabinetry","Other"];
+const METERS = ["GE/Protimeter/MMS2","Protimeter Surveymaster","Delmhorst BD-2100","Tramex ME5","Tramex MRH III"];
+const MTYPES = ["Invasive","Non-Invasive"];
+const SURFACES = ["Walls","Ceiling","Floor","Subfloor","Framing","Cabinet","Other"];
+const COMPANY = {name:"weDRY Restoration, LLC",addr1:"2285 N. Opdyke Rd, Ste E",addr2:"Auburn Hills, MI 48326",phone:"248-752-3222",web:"wedrymi.com"};
+const STATUSES = ["Drying","Dry","Closed"];
+const ATMO_TYPES = {outside:"Outside", unaffected:"Unaffected area", hvac:"HVAC", chamber:"Affected chamber", dehu:"Dehu outlet"};
+
+/* ---------- psychrometrics (brief: Buck + Magnus, sea level) ---------- */
+function fToC(f){return (f-32)*5/9}
+function gpp(tf, rh){
+  if(!isNum(tf)||!isNum(rh)||rh<=0) return null;
+  const T=fToC(tf);
+  const es=611.21*Math.exp((18.678-T/234.5)*(T/(257.14+T)));
+  const e=(rh/100)*es;
+  const W=0.62198*e/(101325-e);
+  return W*7000;
+}
+function dewPoint(tf, rh){
+  if(!isNum(tf)||!isNum(rh)||rh<=0) return null;
+  const T=fToC(tf);
+  const g=Math.log(rh/100)+17.62*T/(243.12+T);
+  const td=243.12*g/(17.62-g);
+  return td*9/5+32;
+}
+function isNum(v){return typeof v==="number"&&isFinite(v)}
+
+/* ---------- utils ---------- */
+const $=s=>document.querySelector(s);
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function today(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function fmtDate(s){if(!s)return "";const [y,m,d]=s.split("-");return `${+m}/${+d}/${y.slice(2)}`}
+function fmtDateLong(s){if(!s)return "";const [y,m,d]=s.split("-");return `${+m}/${+d}/${y}`}
+function f1(n){return isNum(n)?n.toFixed(1):"—"}
+function numOrNull(v){if(v===""||v==null)return null;const n=parseFloat(v);return isFinite(n)?n:null}
+function toast(msg,ms=2200){const t=document.createElement("div");t.className="toast";t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),ms)}
+
+/* ---------- storage (local first) ---------- */
+let state = {jobs:{}, tech:"", dirty:[]};
+function loadLocal(){
+  try{const raw=localStorage.getItem(LS_KEY); if(raw){const s=JSON.parse(raw); state=Object.assign(state,s); state.dirty=state.dirty||[]; Object.values(state.jobs).forEach(normalizeJob);}}catch(e){console.warn("local load failed",e)}
+}
+function normalizeJob(j){
+  if(!j||typeof j!=="object") return j;
+  for(const k of ["email","phone","adjuster","policy","fnol","contacted","arrived","source","cause"]) if(j[k]==null) j[k]="";
+  j.rooms=j.rooms||[]; j.points=j.points||[]; j.atmoLocs=j.atmoLocs||[]; j.readings=j.readings||{}; j.atmo=j.atmo||{}; j.visits=j.visits||{};
+  for(const r of j.rooms){ if(r.cls==null) r.cls=""; }
+  for(const p of j.points){
+    if(!p.mtype) p.mtype=/pinless|non/i.test(p.meter||"")?"Non-Invasive":"Invasive";
+    if(!p.surface) p.surface="";
+  }
+  return j;
+}
+function saveLocal(){
+  try{localStorage.setItem(LS_KEY, JSON.stringify(state))}catch(e){toast("Could not save on this device. Storage may be full or blocked.")}
+}
+function touch(job){
+  job.updatedAt=Date.now();
+  if(!state.dirty.includes(job.id)) state.dirty.push(job.id);
+  saveLocal();
+  Sync.schedule();
+}
+function jobsList(){return Object.values(state.jobs).filter(j=>!j.deleted)}
+
+/* ---------- cloud sync (Supabase) ----------
+   Each job is one JSON document. The device keeps the last version it got from the
+   server ("base"). On save, the server only accepts the write if nobody else saved
+   since that base. If someone did, the app merges field by field (three-way merge)
+   and tries again, so two techs working offline on the same job both keep their readings. */
+const CFG = window.WEDRY_CONFIG || {};
+const BASE_KEY = "wedrytrack.base.v1";
+const PROFILE_KEY = "wedrytrack.profile.v1";
+const sb = (window.supabase && CFG.supabaseUrl && CFG.supabaseKey)
+  ? window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseKey, {auth:{persistSession:true, autoRefreshToken:true, detectSessionInUrl:true, storageKey:"wedrytrack.auth"}})
+  : null;
+let base = {};      // id -> {v: server version, doc: server doc}
+let me = null;      // {id, email, name, role, active}
+try{ base = JSON.parse(localStorage.getItem(BASE_KEY)||"{}") }catch(e){ base = {} }
+try{ me = JSON.parse(localStorage.getItem(PROFILE_KEY)||"null") }catch(e){ me = null }
+function saveBase(){ try{localStorage.setItem(BASE_KEY, JSON.stringify(base))}catch(e){} }
+function isAdmin(){ return !!(me && me.role==="admin") }
+
+function isObj(x){ return x!==null && typeof x==="object" && !Array.isArray(x) }
+function same(a,b){ return JSON.stringify(a)===JSON.stringify(b) }
+function byId(arr){ return Array.isArray(arr) && arr.every(x=>isObj(x)&&typeof x.id==="string") }
+// Three-way merge. preferLocal decides true conflicts (both sides changed the same value differently).
+function merge3(b, l, r, preferLocal){
+  if(same(l,r)) return l;
+  if(same(b,l)) return r;
+  if(same(b,r)) return l;
+  if(byId(l) && byId(r) && (b===undefined || byId(b))){
+    const bm=new Map((b||[]).map(x=>[x.id,x])), lm=new Map(l.map(x=>[x.id,x])), rm=new Map(r.map(x=>[x.id,x]));
+    const order=[...l.map(x=>x.id), ...r.map(x=>x.id).filter(id=>!lm.has(id))];
+    const out=[];
+    for(const id of order){ const m=merge3(bm.get(id), lm.get(id), rm.get(id), preferLocal); if(m!==undefined) out.push(m) }
+    return out;
+  }
+  if(isObj(l) && isObj(r)){
+    const bo=isObj(b)?b:{}, out={};
+    for(const k of new Set([...Object.keys(l),...Object.keys(r)])){
+      const m=merge3(bo[k], l[k], r[k], preferLocal); if(m!==undefined) out[k]=m;
+    }
+    return out;
+  }
+  return preferLocal ? l : r;
+}
+function mergeJob(b, l, r){
+  const m = merge3(b, l, r, (l.updatedAt||0) >= (r.updatedAt||0));
+  m.updatedAt = Math.max(l.updatedAt||0, r.updatedAt||0);
+  m.nextPoint = Math.max(m.nextPoint||1, ...(m.points||[]).map(p=>(p.num||0)+1));
+  return normalizeJob(m);
+}
+function stripJob(j){ const c=JSON.parse(JSON.stringify(j)); return c }
+
+const Sync = {
+  status:"local", timer:null, busy:false, readOnly:false, cursor:null, needLogin:false,
+  get db(){ return sb && this.session ? sb : null },
+  session:null,
+  async init(){
+    if(!sb){ this.set("local"); return }
+    this.cursor = localStorage.getItem("wedrytrack.cursor") || null;
+    if(!this.session){ const { data } = await sb.auth.getSession(); this.session = data.session }
+    if(!this._authWired){
+      this._authWired=true;
+      sb.auth.onAuthStateChange((ev, session)=>{
+        if(session) this.session = session;
+        if(ev==="PASSWORD_RECOVERY") setTimeout(()=>changePassword(true), 300);
+        if(ev==="SIGNED_OUT"){ this.session=null; this.set("signedout"); render() }
+      });
+    }
+    if(!this.session){ this.set("signedout"); return }
+    if(!this._wired){
+      this._wired=true;
+      window.addEventListener("online",()=>this.schedule(500));
+      document.addEventListener("visibilitychange",()=>{ if(!document.hidden) this.schedule(200) });
+      setInterval(()=>this.schedule(0), 30000);
+    }
+    this.schedule(0);
+  },
+  set(s){ this.status=s; renderSyncChip() },
+  schedule(ms=1500){
+    if(!this.db){ renderSyncChip(); return }
+    clearTimeout(this.timer); this.timer=setTimeout(()=>this.run(), ms);
+    if(this.status==="ok" && state.dirty.length) this.set("pending");
+  },
+  async run(){
+    if(!this.db || this.busy) return;
+    if(!navigator.onLine){ this.set(state.dirty.length?"offline":"ok"); return }
+    this.busy=true;
+    try{
+      await this.loadProfile();
+      if(me && !me.active){ this.set("inactive"); return }
+      await this.pull();
+      await this.push();
+      this.set(state.dirty.length?"pending":"ok");
+    }catch(e){
+      console.warn("sync failed", e);
+      if(e && (e.status===401 || e.code==="PGRST301" || /JWT|token/i.test(e.message||""))){ this.set("signedout"); this.session=null }
+      else this.set(state.dirty.length?"offline":"ok");
+      if(this.status==="signedout") softRender();
+    }finally{ this.busy=false }
+    if(state.dirty.length && this.status!=="signedout") { clearTimeout(this.timer); this.timer=setTimeout(()=>this.run(), 15000) }
+  },
+  async loadProfile(){
+    const uid=this.session?.user?.id; if(!uid) return;
+    const { data, error } = await sb.from("profiles").select("id,email,name,role,active").eq("id", uid).maybeSingle();
+    if(error) throw error;
+    if(data){
+      const changed = !me || me.id!==data.id || me.name!==data.name || me.role!==data.role || me.active!==data.active;
+      me=data; localStorage.setItem(PROFILE_KEY, JSON.stringify(me));
+      if(data.name && state.tech!==data.name){ state.tech=data.name; saveLocal() }
+      if(changed) softRender();
+    }
+  },
+  async pull(){
+    let changed=false, first=true;
+    for(;;){
+      let q = sb.from("jobs").select("id,doc,version,deleted,updated_at").order("updated_at",{ascending:true}).limit(200);
+      // First page re-reads a few seconds back so a save that committed late is never missed.
+      if(this.cursor) q = q.gt("updated_at", first ? new Date(Date.parse(this.cursor)-10000).toISOString() : this.cursor);
+      first=false;
+      const { data, error } = await q;
+      if(error) throw error;
+      for(const row of data){
+        const remote = normalizeJob(Object.assign({}, row.doc, {deleted: !!row.deleted || !!row.doc.deleted}));
+        const local = state.jobs[row.id];
+        const known = base[row.id];
+        if(known && known.v >= row.version) continue;
+        if(!local || !state.dirty.includes(row.id)){
+          state.jobs[row.id] = remote;
+        } else {
+          state.jobs[row.id] = mergeJob(known ? known.doc : undefined, local, remote);
+        }
+        base[row.id] = {v: row.version, doc: stripJob(remote)};
+        changed=true;
+      }
+      if(data.length){ this.cursor = data[data.length-1].updated_at; localStorage.setItem("wedrytrack.cursor", this.cursor) }
+      if(data.length < 200) break;
+    }
+    if(changed){ saveLocal(); saveBase(); softRender() }
+  },
+  async push(){
+    for(const id of [...state.dirty]){
+      const j = state.jobs[id];
+      if(!j){ state.dirty = state.dirty.filter(x=>x!==id); continue }
+      const stamp = j.updatedAt;
+      const doc = stripJob(j);
+      const b = base[id] ? base[id].v : 0;
+      const { data: v, error } = await sb.rpc("save_job", {p_id:id, p_doc:doc, p_deleted:!!j.deleted, p_base:b});
+      if(error){
+        if(/admin/i.test(error.message||"")){ j.deleted=false; toast("Only an admin can delete a job"); softRender() }
+        throw error;
+      }
+      if(v==null){ await this.pull(); continue }   // someone saved first: merged on pull, retried next round
+      base[id] = {v, doc};
+      if(state.jobs[id] && state.jobs[id].updatedAt===stamp) state.dirty = state.dirty.filter(x=>x!==id);
+      saveBase(); saveLocal();
+    }
+  },
+  async flush(){ return this.run() }
+};
+
+/* ---------- sign in, account, users ---------- */
+function renderLogin(){
+  $("#hdr").innerHTML=`<h1>${esc(APP)}</h1>`;
+  $("#tabs").innerHTML="";
+  const off=!navigator.onLine;
+  $("#main").innerHTML=`<div class="card" style="max-width:420px;margin:40px auto">
+    <img src="wedry-logo-light.png" alt="weDRY" style="width:180px;max-width:100%;display:block;margin:0 auto 14px">
+    <h2 style="margin-top:0">Sign in</h2>
+    ${off?`<p class="small" style="background:var(--warn);padding:8px;border-radius:8px">You are offline. Sign in once with a signal. After that the app works with no signal.</p>`:""}
+    <form id="loginf" onsubmit="return false">
+      <label class="f">Email<input id="l_e" type="email" autocomplete="username" required></label>
+      <label class="f">Password<input id="l_p" type="password" autocomplete="current-password" required></label>
+      <div class="row"><a href="javascript:void 0" class="small" onclick="forgotPassword()">Forgot password?</a><span class="grow"></span><button class="btn" id="l_go">Sign in</button></div>
+    </form>
+    <p class="small muted">Accounts are set up by your weDRY admin.</p>
+  </div>`;
+  $("#l_go").onclick=async()=>{
+    const email=$("#l_e").value.trim(), password=$("#l_p").value;
+    if(!email||!password){toast("Enter email and password");return}
+    $("#l_go").disabled=true;
+    const { data, error } = await sb.auth.signInWithPassword({email,password});
+    $("#l_go").disabled=false;
+    if(error){ toast(/fetch|network/i.test(error.message)?"No connection. Try again with a signal.":"Wrong email or password"); return }
+    if(me && me.id!==data.user.id){ // different person on this device: start clean
+      state={jobs:{},tech:"",dirty:[]}; base={}; me=null; saveBase(); saveLocal();
+      localStorage.removeItem("wedrytrack.cursor"); localStorage.removeItem(PROFILE_KEY); Sync.cursor=null;
+    }
+    Sync.session=data.session; await Sync.init(); render();
+  };
+}
+async function forgotPassword(){
+  const email=$("#l_e")?.value.trim();
+  if(!email){toast("Enter your email first");return}
+  const { error } = await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+  toast(error?"Could not send. Check your connection.":"Check your email for a reset link",3500);
+}
+function changePassword(recovery){
+  modal(`<h2>${recovery?"Set a new password":"Change password"}</h2>
+    <label class="f">New password<input id="m_p1" type="password" autocomplete="new-password"></label>
+    <label class="f">Type it again<input id="m_p2" type="password" autocomplete="new-password"></label>
+    <div class="row"><span class="grow"></span><button class="btn sec" onclick="closeModal()">Cancel</button><button class="btn" id="m_ok">Save</button></div>`);
+  $("#m_ok").onclick=async()=>{
+    const a=$("#m_p1").value,b=$("#m_p2").value;
+    if(a.length<8){toast("Use at least 8 characters");return}
+    if(a!==b){toast("Passwords do not match");return}
+    const { error } = await sb.auth.updateUser({password:a});
+    if(error){toast(error.message);return}
+    closeModal(); toast("Password saved");
+  };
+}
+function editTech(){
+  if(!sb){ return editTechLocal() }
+  modal(`<h2>Account</h2>
+    <p class="small muted">${esc(me?.email||Sync.session?.user?.email||"")}${me?` · ${me.role==="admin"?"Admin":"Tech"}`:""}</p>
+    <label class="f">Your name (goes on readings and the dry log)<input id="m_t" value="${esc(state.tech)}" autocomplete="name"></label>
+    <div class="row" style="flex-wrap:wrap;gap:8px"><button class="btn sec sm" onclick="changePassword()">Change password</button>
+      ${isAdmin()?`<button class="btn sec sm" onclick="usersAdmin()">Manage users</button>`:""}
+      <button class="btn sec sm" id="m_out">Sign out</button></div>
+    <div class="row"><span class="grow"></span><button class="btn sec" onclick="closeModal()">Cancel</button><button class="btn" id="m_ok">Save</button></div>`);
+  $("#m_ok").onclick=async()=>{
+    const name=$("#m_t").value.trim(); state.tech=name; saveLocal(); closeModal(); render();
+    if(Sync.db && me && name && navigator.onLine){
+      const { error } = await sb.from("profiles").update({name}).eq("id",me.id);
+      if(!error){ me.name=name; localStorage.setItem(PROFILE_KEY, JSON.stringify(me)) }
+    }
+  };
+  $("#m_out").onclick=()=>{
+    const n=state.dirty.length;
+    modal(`<h2>Sign out?</h2><p>${n?`<b>${n} job${n===1?" has":"s have"} changes not yet synced.</b> Connect to the internet and wait for "Synced" first, or they will be lost from this device.`:"Your jobs are synced."} Signing out removes WedryTrack data from this device.</p>
+      <div class="row"><span class="grow"></span><button class="btn sec" onclick="closeModal()">Cancel</button><button class="btn danger" id="m_yes">Sign out</button></div>`);
+    $("#m_yes").onclick=async()=>{
+      try{ await sb.auth.signOut() }catch(e){}
+      for(const k of [LS_KEY,BASE_KEY,PROFILE_KEY,"wedrytrack.cursor"]) localStorage.removeItem(k);
+      location.hash=""; location.reload();
+    };
+  };
+}
+function editTechLocal(){
+  modal(`<h2>Technician</h2><p class="small muted">Your name goes on each reading you enter from this device and on the dry log visit list.</p>
+    <label class="f">Name<input id="m_t" value="${esc(state.tech)}" autocomplete="name"></label>
+    <div class="row"><span class="grow"></span><button class="btn sec" onclick="closeModal()">Cancel</button><button class="btn" id="m_ok">Save</button></div>`);
+  setTimeout(()=>$("#m_t")?.focus(),50);
+  $("#m_ok").onclick=()=>{state.tech=$("#m_t").value.trim();saveLocal();closeModal();render()};
+}
+async function usersAdmin(){
+  if(!navigator.onLine){toast("Connect to the internet to manage users");return}
+  const { data, error } = await sb.from("profiles").select("id,email,name,role,active").order("created_at");
+  if(error){toast("Could not load users");return}
+  modal(`<h2>Users</h2>
+    <p class="small muted">To add someone: Supabase dashboard, Authentication, Users, Add user, Create new user (tick Auto Confirm). They show up here after that. Set their name and role here.</p>
+    <div style="max-height:55vh;overflow:auto">${data.map(u=>`<div class="card" style="padding:8px;margin:6px 0" data-u="${u.id}">
+      <div class="small muted">${esc(u.email||"")}</div>
+      <div class="grid2"><label class="f">Name<input data-k="name" value="${esc(u.name)}"></label>
+      <label class="f">Role<select data-k="role"><option value="tech" ${u.role==="tech"?"selected":""}>Tech</option><option value="admin" ${u.role==="admin"?"selected":""}>Admin</option></select></label></div>
+      <label class="small"><input type="checkbox" data-k="active" ${u.active?"checked":""}> Active (can sign in and see jobs)</label></div>`).join("")}</div>
+    <div class="row"><span class="grow"></span><button class="btn sec" onclick="closeModal()">Close</button><button class="btn" id="m_ok">Save</button></div>`);
+  $("#m_ok").onclick=async()=>{
+    for(const el of document.querySelectorAll("[data-u]")){
+      const id=el.dataset.u, u=data.find(x=>x.id===id);
+      const upd={name:el.querySelector('[data-k=name]').value.trim(), role:el.querySelector('[data-k=role]').value, active:el.querySelector('[data-k=active]').checked};
+      if(upd.name===u.name&&upd.role===u.role&&upd.active===u.active) continue;
+      const { error } = await sb.from("profiles").update(upd).eq("id",id);
+      if(error){toast(error.message,4000);return}
+    }
+    closeModal(); toast("Users saved"); Sync.schedule(0);
+  };
+}
+
+function renderSyncChip(){
+  const el=$("#syncchip"); if(!el) return;
+  const map={signedout:["off","Signed out"],inactive:["off","Account inactive"],local:["off","Saved on device"],connecting:["pend","Connecting…"],ok:["ok","Synced"],pending:["pend","Syncing…"],offline:["off","Offline, saved on device"]};
+  let [cls,txt]=map[Sync.status]||map.local;
+  if(Sync.status==="pending"&&!navigator.onLine){cls="off";txt="Offline, saved on device"}
+  if(Sync.readOnly){cls="off";txt="View only"}
+  el.className="chip "+cls; el.textContent=txt;
+}
+
+/* ---------- domain logic ---------- */
+function newJob(){
+  return {id:uid(),jobNumber:"",customer:"",address:"",claim:"",carrier:"",dol:"",category:"",cls:"",status:"Drying",
+    startDate:"",dryOutDate:"",notes:"",source:"",cause:"",email:"",phone:"",adjuster:"",policy:"",fnol:"",contacted:"",arrived:"",rooms:[],points:[],readings:{},atmoLocs:[],atmo:{},visits:{},nextPoint:1,createdBy:state.tech||"",updatedAt:Date.now(),deleted:false};
+}
+function roomPoints(job,roomId){return job.points.filter(p=>p.roomId===roomId).sort((a,b)=>a.num-b.num)}
+function visitDates(job){
+  const s=new Set();
+  for(const d in (job.visits||{})){const v=job.visits[d]; if(v&&(v.arrival||v.depart||v.notes||v.hvac)) s.add(d)}
+  for(const pid in job.readings) for(const d in job.readings[pid]) if(isNum(job.readings[pid][d]?.v)) s.add(d);
+  for(const lid in job.atmo) for(const d in job.atmo[lid]) { const r=job.atmo[lid][d]; if(r&&(isNum(r.t)||isNum(r.rh))) s.add(d) }
+  return [...s].sort();
+}
+function readingOn(job,pid,date){const r=job.readings[pid]?.[date];return r&&isNum(r.v)?r.v:null}
+function prevReading(job,pid,date){
+  const m=job.readings[pid]||{}; let best=null,bd=null;
+  for(const d in m){ if(d<date && isNum(m[d]?.v) && (bd===null||d>bd)){bd=d;best=m[d].v} }
+  return best;
+}
+function latestReading(job,pid){
+  const m=job.readings[pid]||{}; let best=null,bd=null;
+  for(const d in m){ if(isNum(m[d]?.v)&&(bd===null||d>bd)){bd=d;best=m[d].v} }
+  return best;
+}
+function cellState(v,goal){ if(!isNum(v)||!isNum(goal)) return ""; return v<=goal?"dry":"wet" }
+function isRemoved(p,date){return !!(p.removed && date>=p.removed)}
+function activePoints(job){return job.points.filter(p=>!p.removed)}
+function pointDry(job,p){ const v=latestReading(job,p.id); if(!isNum(v)||!isNum(p.goal)) return null; return v<=p.goal }
+function trendOf(v,prev){
+  if(!isNum(v)||!isNum(prev)) return "";
+  if(v<prev) return `<span class="trend down" title="Down from ${prev}">▼</span>`;
+  if(v>prev) return `<span class="trend up" title="Up from ${prev}">▲</span>`;
+  return `<span class="trend flat" title="Same as last visit">=</span>`;
+}
+function roomStatus(job,room){
+  const pts=roomPoints(job,room.id).filter(p=>isNum(p.goal)&&!p.removed);
+  if(!pts.length) return {state:"none",dry:0,total:0};
+  const dry=pts.filter(p=>pointDry(job,p)===true).length;
+  return {state:dry===pts.length?"dry":"wet",dry,total:pts.length};
+}
+function jobProgress(job){
+  const pts=activePoints(job).filter(p=>isNum(p.goal));
+  const dry=pts.filter(p=>pointDry(job,p)===true).length;
+  return {dry,total:pts.length,ready:pts.length>0&&dry===pts.length};
+}
+function atmoLoc(job,id){return job.atmoLocs.find(l=>l.id===id)}
+function atmoCalc(job,locId,date){
+  const r=job.atmo[locId]?.[date]; if(!r) return {t:null,rh:null,gpp:null,dp:null};
+  const g=gpp(r.t,r.rh), dp=dewPoint(r.t,r.rh);
+  return {t:isNum(r.t)?r.t:null,rh:isNum(r.rh)?r.rh:null,gpp:g,dp};
+}
+function grainDepression(job,dehu,date){
+  if(!dehu.chamberId) return null;
+  const c=atmoCalc(job,dehu.chamberId,date).gpp, o=atmoCalc(job,dehu.id,date).gpp;
+  if(!isNum(c)||!isNum(o)) return null;
+  return c-o;
+}
+function locLabel(job,l){
+  let s=l.label||ATMO_TYPES[l.type];
+  if(l.type==="dehu"&&l.chamberId){const c=atmoLoc(job,l.chamberId); if(c) s+=` (in ${c.label||"chamber"})`}
+  return s;
+}
+function sortedLocs(job){
+  const order={outside:0,unaffected:1,hvac:2,chamber:3,dehu:4};
+  const out=[];
+  const chambers=job.atmoLocs.filter(l=>l.type==="chamber");
+  for(const l of job.atmoLocs.filter(l=>l.type==="outside"||l.type==="unaffected"||l.type==="hvac").sort((a,b)=>order[a.type]-order[b.type])) out.push(l);
+  for(const c of chambers){out.push(c); for(const d of job.atmoLocs.filter(l=>l.type==="dehu"&&l.chamberId===c.id)) out.push(d)}
+  for(const d of job.atmoLocs.filter(l=>l.type==="dehu"&&!chambers.some(c=>c.id===l.chamberId))) out.push(d);
+  return out;
+}
+function recordVisit(job,date){
+  job.visits=job.visits||{};
+  if(!job.startDate) job.startDate=date;
+  if(!job.visits[date]) job.visits[date]={tech:state.tech||""};
+  else if(!job.visits[date].tech && state.tech) job.visits[date].tech=state.tech;
+}
+function techsForDate(job,date){
+  const s=new Set(); const v=job.visits?.[date]; if(v?.tech) s.add(v.tech);
+  for(const pid in job.readings){const r=job.readings[pid][date]; if(r?.tech) s.add(r.tech)}
+  for(const lid in job.atmo){const r=job.atmo[lid][date]; if(r?.tech) s.add(r.tech)}
+  return [...s].join(", ");
+}
+
+/* ---------- routing & ui state ---------- */
+const ui = {tab:"readings", date:today(), atmoDate:today(), filter:"active", pendingRender:false};
+function route(){
+  const h=location.hash.replace(/^#/,"");
+  if(h.startsWith("job-")){const id=h.slice(4); if(state.jobs[id]&&!state.jobs[id].deleted) return {view:"job",id}}
+  return {view:"jobs"};
+}
+function go(hash){ if(location.hash==="#"+hash) render(); else location.hash=hash; }
+window.addEventListener("hashchange",()=>{window.scrollTo(0,0);render()});
+function softRender(){
+  const a=document.activeElement;
+  if(a && /INPUT|SELECT|TEXTAREA/.test(a.tagName) && $("#main").contains(a)){ui.pendingRender=true;return}
+  if($("#modal").innerHTML){ui.pendingRender=true;return}
+  render();
+}
+document.addEventListener("focusout",()=>{ if(ui.pendingRender){ setTimeout(()=>{ const a=document.activeElement; if(!(a&&/INPUT|SELECT|TEXTAREA/.test(a.tagName))){ui.pendingRender=false;render()} },50)} });
+
+function render(){
+  if(sb && !Sync.session){ renderLogin(); return }
+  const r=route();
+  if(r.view==="job") renderJob(state.jobs[r.id]); else renderJobs();
+  renderSyncChip();
+}
+
+/* ---------- header ---------- */
+function header(title,back){
+  $("#hdr").innerHTML=`${back?`<button class="back" aria-label="Back" onclick="go('jobs')">‹</button>`:""}
+    <h1>${esc(title)}</h1>
+    <button class="chip" onclick="editTech()" title="Your account">${esc(state.tech||"Account")}</button>
+    <span id="syncchip" class="chip off">Saved on device</span>`;
+}
+
+/* ---------- jobs list ---------- */
+function renderJobs(){
+  header(APP,false);
+  $("#tabs").innerHTML="";
+  const f=ui.filter;
+  let jobs=jobsList().sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+  if(f==="active") jobs=jobs.filter(j=>j.status!=="Closed");
+  else if(f!=="all") jobs=jobs.filter(j=>j.status===f);
+  const opts=[["active","Open"],["Drying","Drying"],["Dry","Dry"],["Closed","Closed"],["all","All"]];
+  $("#main").innerHTML=`
+    <div class="row" style="margin-bottom:12px">
+      <select onchange="ui.filter=this.value;render()" style="padding:8px;border:1px solid var(--line);border-radius:8px;background:#fff">${opts.map(([v,t])=>`<option value="${v}" ${v===f?"selected":""}>${t}</option>`).join("")}</select>
+      <span class="grow"></span>
+      <button class="btn sec sm" onclick="backupMenu()">Backup</button>
+    </div>
+    ${jobs.length?jobs.map(jobCard).join(""):`<div class="card empty">No jobs here yet.<br><br><button class="btn" onclick="createJob()">Start a job</button></div>`}
+    <button class="btn fab" onclick="createJob()">+ New job</button>`;
+}
+function jobCard(j){
+  const p=jobProgress(j); const dates=visitDates(j); const last=dates[dates.length-1];
+  const pct=p.total?Math.round(p.dry/p.total*100):0;
+  return `<div class="card jobcard" onclick="go('job-${j.id}')">
+    <div class="row"><b class="grow">${esc(j.customer||"Untitled job")}</b><span class="pill ${esc(j.status)}">${esc(j.status)}</span></div>
+    <div class="muted small">${esc(j.address||"")}</div>
+    <div class="small" style="margin-top:4px">${j.jobNumber?`Job ${esc(j.jobNumber)} · `:""}${j.carrier?esc(j.carrier)+" · ":""}${j.category?`Cat ${esc(j.category)}`:""}${j.cls?` Class ${esc(j.cls)}`:""}</div>
+    <div class="small muted" style="margin-top:4px">${p.total?`${p.dry} of ${p.total} points at goal`:"No moisture points yet"}${last?` · last visit ${fmtDate(last)}`:""}${p.ready&&j.status==="Drying"?` · <b style="color:var(--dryink)">ready for dry-out</b>`:""}</div>
+    ${p.total?`<div class="bar"><i style="width:${pct}%"></i></div>`:""}
+  </div>`;
+}
+function createJob(){
+  const j=newJob();
+  jobForm(j,true);
+}
+
+/* ---------- job view ---------- */
+const TABS=[["readings","Readings"],["grid","Moisture map"],["atmo","Atmospherics"],["rooms","Rooms & points"],["info","Job info"],["report","Dry log"]];
+function renderJob(job){
+  header(job.customer||job.jobNumber||"Job",true);
+  if(!job.rooms.length && ui.tab==="readings") ui.tab="rooms";
+  $("#tabs").innerHTML=`<nav class="tabs">${TABS.map(([k,t])=>`<button class="${ui.tab===k?"on":""}" onclick="ui.tab='${k}';render()">${t}</button>`).join("")}</nav>`;
+  const fn={readings:tabReadings,grid:tabGrid,atmo:tabAtmo,rooms:tabRooms,info:tabInfo,report:tabReport}[ui.tab]||tabReadings;
+  $("#main").innerHTML=statusBanner(job)+fn(job);
+  if(ui.tab==="report") afterReport(job);
+}
+function statusBanner(job){
+  const p=jobProgress(job);
+  if(job.status==="Drying" && p.ready) return `<div class="banner ready row"><span class="grow">All ${p.total} points are at or below dry goal. Ready for dry-out confirmation.</span><button class="btn sm" onclick="confirmDry('${job.id}')">Confirm dry</button></div>`;
+  if(job.status!=="Drying" && job.dryOutDate) return `<div class="banner info">Dry-out confirmed ${fmtDateLong(job.dryOutDate)}.</div>`;
+  return "";
+}
+function confirmDry(id){
+  const job=state.jobs[id];
+  modal(`<h2>Confirm dry-out</h2>
+    <p>Every moisture point is at or below its dry goal. This sets the job to Dry and records the dry-out date on the dry log.</p>
+    <label class="f">Dry-out confirmed date<input type="date" id="m_dod" value="${job.dryOutDate||visitDates(job).slice(-1)[0]||today()}"></label>
+    <div class="row"><span class="grow"></span><button class="btn sec" onclick="closeModal()">Cancel</button><button class="btn" id="m_ok">Confirm</button></div>`);
+  $("#m_ok").onclick=()=>{job.dryOutDate=$("#m_dod").value||today(); job.status="Dry"; touch(job); closeModal(); render(); toast("Dry-out confirmed")};
+}
+
+/* --- Readings entry --- */
+function tabReadings(job){
+  const d=ui.date;
+  if(!job.rooms.length) return `<div class="card empty">Add rooms and moisture points first.<br><br><button class="btn" onclick="ui.tab='rooms';render()">Rooms & points</button></div>`;
+  const dates=visitDates(job);
+  let html=`<div class="card"><div class="row">
+      <label class="f grow" style="margin:0">Visit date<input type="date" value="${d}" onchange="ui.date=this.value||today();render()"></label>
+    </div>
+    <div class="small muted" style="margin-top:6px">Tech: <b>${esc(job.visits?.[d]?.tech||state.tech||"not set")}</b>${dates.length?` · Visits: ${dates.map(x=>`<a href="javascript:void 0" onclick="ui.date='${x}';render()">${fmtDate(x)}</a>`).join(", ")}`:""}</div>
+    ${visitFields(job,d)}
+  </div>`;
+  if(!job.points.length) return html+`<div class="card empty">No moisture points yet.<br><br><button class="btn" onclick="ui.tab='rooms';render()">Add points</button></div>`;
+  const live=job.points.filter(p=>!isRemoved(p,d));
+  const missing=live.filter(p=>!isNum(readingOn(job,p.id,d))).length;
+  const started=live.length-missing;
+  if(started>0&&missing>0) html+=`<div class="banner warn" id="missbanner">${missing} of ${live.length} points have no reading for ${fmtDate(d)}.</div>`;
+  else html+=`<div id="missbanner"></div>`;
+  for(const room of job.rooms){
+    const pts=roomPoints(job,room.id).filter(p=>!isRemoved(p,d)); if(!pts.length) continue;
+    const rs=roomStatus(job,room);
+    html+=`<div class="card"><div class="row" style="margin-bottom:4px"><h3 class="grow" style="margin:0">${esc(room.name)}</h3>
+      ${rs.state==="none"?"":`<span class="pill ${rs.state}">${rs.state==="dry"?"Dry":`${rs.dry}/${rs.total} dry`}</span>`}</div>`;
+    for(const p of pts){
+      const v=readingOn(job,p.id,d), prev=prevReading(job,p.id,d);
+      html+=`<div class="pt"><div>
+          <div class="lbl">#${p.num} ${esc(p.label)}</div>
+          <div class="small muted">${esc(p.material)}${p.surface?" · "+esc(p.surface):""} · ${esc(p.mtype||"")} · goal <b>${isNum(p.goal)?p.goal:"not set"}</b>${isNum(prev)?` · last ${prev}`:""} <span id="tr_${p.id}">${trendOf(v,prev)}</span></div>
+        </div>
+        <input inputmode="decimal" type="text" data-pid="${p.id}" value="${isNum(v)?v:""}" class="${cellState(v,p.goal)}" aria-label="Reading for point ${p.num}" oninput="onReading(this)" onchange="commitReading(this)" enterkeyhint="next" onkeydown="if(event.key==='Enter'){event.preventDefault();nextInput(this)}">
+      </div>`;
+    }
+    html+=`</div>`;
+  }
+  return html;
+}
+function nextInput(el){const all=[...document.querySelectorAll("#main input[data-pid],#main input[data-atmo]")];const i=all.indexOf(el);if(all[i+1])all[i+1].focus();else el.blur()}
+function curJob(){const r=route();return r.view==="job"?state.jobs[r.id]:null}
+function onReading(el){
+  const job=curJob(); const p=job.points.find(x=>x.id===el.dataset.pid); const v=numOrNull(el.value);
+  el.className=cellState(v,p.goal);
+  const tr=document.getElementById("tr_"+p.id); if(tr) tr.innerHTML=trendOf(v,prevReading(job,p.id,ui.date));
+}
+function commitReading(el){
+  const job=curJob(); const pid=el.dataset.pid; const v=numOrNull(el.value);
+  if(el.value.trim()!==""&&v===null){toast("Enter a number");return}
+  job.readings[pid]=job.readings[pid]||{};
+  const prev=job.readings[pid][ui.date];
+  if(v===null) delete job.readings[pid][ui.date];
+  else {
+    const now=Date.now();
+    const r={v,tech:state.tech||"",at:prev?.at||now};
+    if(prev&&prev.v!==v){r.editedAt=now;r.editedBy=state.tech||"";r.orig=prev.orig??prev.v}
+    if(ui.date<today()) r.lateEntry=true;
+    job.readings[pid][ui.date]=r; recordVisit(job,ui.date);
+  }
+  touch(job);
+  ui.pendingRender=true;
+}
+function visitFields(job,d){
+  const v=job.visits?.[d]||{};
+  return `<details style="margin-top:8px" ${v.arrival||v.depart||v.notes||v.hvac?"open":""}><summary class="small" style="cursor:pointer;color:var(--blue)">Visit details</summary>
+    <div class="grid2" style="margin-top:8px">
+      <label class="f">Arrival time<input type="time" value="${esc(v.arrival||"")}" onchange="setVisit('arrival',this.value)"></label>
+      <label class="f">Departure time<input type="time" value="${esc(v.depart||"")}" onchange="setVisit('depart',this.value)"></label>
+      <label class="f">HVAC<select onchange="setVisit('hvac',this.value)"><option value="">Not noted</option><option ${v.hvac==="On"?"selected":""}>On</option><option ${v.hvac==="Off"?"selected":""}>Off</option></select></label>
+    </div>
+    <label class="f">Visit notes<textarea rows="2" onchange="setVisit('notes',this.value)">${esc(v.notes||"")}</textarea></label>
+  </details>`;
+}
+function setVisit(k,val){const job=curJob();recordVisit(job,ui.date);job.visits[ui.date][k]=val;touch(job)}
+
+/* --- Grid --- */
+function tabGrid(job){
+  const dates=visitDates(job).filter(d=>job.points.some(p=>isNum(readingOn(job,p.id,d))));
+  if(!job.points.length) return `<div class="card empty">No moisture points yet.</div>`;
+  let h=`<div class="small muted" style="margin-bottom:6px">Green is at or below dry goal, red is above. Arrows compare to the previous visit.</div><div class="tw"><table class="g"><thead><tr><th class="l">Point</th><th>Material</th><th>Goal</th>${dates.map(d=>`<th>${fmtDate(d)}</th>`).join("")}</tr></thead><tbody>`;
+  for(const room of job.rooms){
+    const pts=roomPoints(job,room.id); if(!pts.length) continue;
+    const rs=roomStatus(job,room);
+    h+=`<tr class="room"><td class="l">${esc(room.name)}${room.affected?"":" (unaffected)"}</td><td colspan="${2+dates.length}">${rs.state==="none"?"":rs.state==="dry"?`<span class="pill dry">Room dry</span>`:`<span class="pill wet">${rs.dry}/${rs.total} at goal</span>`}</td></tr>`;
+    for(const p of pts){
+      h+=`<tr><td class="l">#${p.num} ${esc(p.label)}${p.removed?` <span class="small muted">(removed ${fmtDate(p.removed)})</span>`:""}</td><td>${esc(p.material)}</td><td><b>${isNum(p.goal)?p.goal:"—"}</b></td>`;
+      for(const d of dates){
+        const v=readingOn(job,p.id,d);
+        if(isRemoved(p,d)&&!isNum(v)){h+=`<td class="small muted">Removed</td>`;continue}
+        if(!isNum(v)){h+=`<td></td>`;continue}
+        const pr=prevReading(job,p.id,d);
+        h+=`<td class="${cellState(v,p.goal)}">${v}<span class="tr">${trendOf(v,pr)}</span></td>`;
+      }
+      h+=`</tr>`;
+    }
+  }
+  h+=`</tbody></table></div>`;
+  if(!dates.length) h+=`<div class="empty">No readings yet. Enter them on the Readings tab.</div>`;
+  return h;
+}
+
+/* --- Atmospherics --- */
+function tabAtmo(job){
+  const d=ui.atmoDate; const locs=sortedLocs(job);
+  let h=`<div class="card"><div class="row"><label class="f grow" style="margin:0">Visit date<input type="date" value="${d}" onchange="ui.atmoDate=this.value||today();render()"></label></div>
+    <div class="row" style="margin-top:8px"><button class="btn sec sm" onclick="addLoc('outside')">+ Outside</button><button class="btn sec sm" onclick="addLoc('unaffected')">+ Unaffected</button><button class="btn sec sm" onclick="addLoc('hvac')">+ HVAC</button><button class="btn sec sm" onclick="addLoc('chamber')">+ Chamber</button><button class="btn sec sm" onclick="addLoc('dehu')">+ Dehu outlet</button></div></div>`;
+  if(!locs.length) return h+`<div class="card empty">Add the locations you read each visit: outside, unaffected area, each affected chamber, and each dehu outlet.</div>`;
+  h+=`<div class="card"><div class="atmo small muted" style="border:0;padding-top:0"><div>Location</div><div style="text-align:center">Temp °F</div><div style="text-align:center">RH %</div></div>`;
+  for(const l of locs){
+    const c=atmoCalc(job,l.id,d);
+    const gd=l.type==="dehu"?grainDepression(job,l,d):null;
+    h+=`<div class="atmo"><div><b>${esc(locLabel(job,l))}</b><div class="small muted">${ATMO_TYPES[l.type]} · <a href="javascript:void 0" onclick="editLoc('${l.id}')">edit</a></div></div>
+      <input inputmode="decimal" data-atmo="${l.id}" data-k="t" value="${isNum(c.t)?c.t:""}" onchange="commitAtmo(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();nextInput(this)}" aria-label="Temperature">
+      <input inputmode="decimal" data-atmo="${l.id}" data-k="rh" value="${isNum(c.rh)?c.rh:""}" onchange="commitAtmo(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();nextInput(this)}" aria-label="Relative humidity">
+      <div class="calc" id="calc_${l.id}">${calcLine(job,l,d)}</div></div>`;
+  }
+  h+=`</div>`;
+  const dates=visitDates(job).filter(dd=>locs.some(l=>isNum(atmoCalc(job,l.id,dd).gpp)));
+  if(dates.length){
+    h+=`<h3 style="margin:16px 0 6px">History</h3><div class="tw"><table class="g"><thead><tr><th class="l">Location</th>${dates.map(x=>`<th colspan="1">${fmtDate(x)}</th>`).join("")}</tr></thead><tbody>`;
+    for(const l of locs){
+      h+=`<tr><td class="l">${esc(locLabel(job,l))}</td>`;
+      for(const x of dates){
+        const c=atmoCalc(job,l.id,x);
+        if(!isNum(c.gpp)){h+=`<td></td>`;continue}
+        let s=`${f1(c.t)}°/${f1(c.rh)}%<br><b>${f1(c.gpp)}</b> gpp`;
+        if(l.type==="dehu"){const g=grainDepression(job,l,x); if(isNum(g)) s+=`<br><span class="gd ${g<=0?"bad":""}">GD ${f1(g)}</span>`}
+        h+=`<td>${s}</td>`;
+      }
+      h+=`</tr>`;
+    }
+    h+=`</tbody></table></div>`;
+  }
+  return h;
+}
+function calcLine(job,l,d){
+  const c=atmoCalc(job,l.id,d);
+  if(!isNum(c.gpp)) return `<span>Enter temp and RH</span>`;
+  let s=`<span>GPP <b>${f1(c.gpp)}</b></span><span>Dew point <b>${f1(c.dp)}°F</b></span>`;
+  if(l.type==="dehu"){
+    if(!l.chamberId) s+=`<span>Link a chamber to get grain depression</span>`;
+    else {const g=grainDepression(job,l,d); s+= isNum(g)?`<span>Grain depression <b class="gd ${g<=0?"bad":""}">${f1(g)}</b></span>`:`<span>Enter the chamber reading for grain depression</span>`}
+  }
+  return s;
+}
+function commitAtmo(el){
+  const job=curJob(); const id=el.dataset.atmo, k=el.dataset.k; const v=numOrNull(el.value);
+  if(el.value.trim()!==""&&v===null){toast("Enter a number");return}
+  if(k==="rh"&&v!==null&&(v<=0||v>100)){toast("RH must be between 0 and 100");return}
+  job.atmo[id]=job.atmo[id]||{};
+  const r=job.atmo[id][ui.atmoDate]||{t:null,rh:null};
+  r[k]=v; r.tech=state.tech||r.tech||"";
+  if(r.t===null&&r.rh===null) delete job.atmo[id][ui.atmoDate]; else {job.atmo[id][ui.atmoDate]=r; recordVisit(job,ui.atmoDate)}
+  touch(job);
+  // refresh calc lines (this location and dehus tied to it)
+  for(const l of job.atmoLocs){ const c=document.getElementById("calc_"+l.id); if(c) c.innerHTML=calcLine(job,l,ui.atmoDate) }
+  ui.pendingRender=true;
+}
+function addLoc(type){ const job=curJob(); locForm(job,{id:uid(),type,label:type==="outside"?"Outside":type==="unaffected"?"Unaffected area":type==="hvac"?"HVAC supply":"",roomId:"",chamberId:""},true) }
+function editLoc(id){ const job=curJob(); locForm(job,{...atmoLoc(job,id)},false) }
+function locForm(job,l,isNew){
+  const chambers=job.atmoLocs.filter(x=>x.type==="chamber");
+  const dehuCount=job.atmoLocs.filter(x=>x.type==="dehu").length;
+  if(isNew&&l.type==="dehu"&&!l.label) l.label="Dehu "+(dehuCount+1);
+  if(isNew&&l.type==="chamber"&&!l.label) l.label="Chamber "+(chambers.length+1);
+  if(l.type==="dehu"&&!chambers.length){toast("Add an affected chamber first");return}
+  if(isNew&&l.type==="dehu"&&!l.chamberId) l.chamberId=chambers[chambers.length-1].id;
+  modal(`<h2>${isNew?"Add":"Edit"} ${ATMO_TYPES[l.type].toLowerCase()}</h2>
+    <label class="f">Label<input id="m_lab" value="${esc(l.label)}" placeholder="${l.type==="dehu"?"e.g. Dehu 1, LGR 2800":"e.g. Basement"}"></label>
+    ${l.type==="chamber"?`<label class="f">Linked room (optional)<select id="m_room"><option value="">None</option>${job.rooms.map(r=>`<option value="${r.id}" ${r.id===l.roomId?"selected":""}>${esc(r.name)}</option>`).join("")}</select></label>`:""}
+    ${l.type==="dehu"?`<label class="f">In chamber<select id="m_ch">${chambers.map(c=>`<option value="${c.id}" ${c.id===l.chamberId?"selected":""}>${esc(c.label)}</option>`).join("")}</select></label>`:""}
+    <div class="row">${isNew?"":`<button class="btn danger" id="m_del">Delete</button>`}<span class="grow"></span><button class="btn sec" onclick="closeModal()">Cancel</button><button class="btn" id="m_ok">Save</button></div>`);
+  if(l.type==="chamber"){ $("#m_room").onchange=e=>{ const r=job.rooms.find(x=>x.id===e.target.value); if(r&&(!$("#m_lab").value||/^Chamber \d+$/.test($("#m_lab").value))) $("#m_lab").value=r.name } }
+  $("#m_ok").onclick=()=>{
+    l.label=$("#m_lab").value.trim()||ATMO_TYPES[l.type];
+    if(l.type==="chamber") l.roomId=$("#m_room").value;
+    if(l.type==="dehu") l.chamberId=$("#m_ch").value;
+    const i=job.atmoLocs.findIndex(x=>x.id===l.id); if(i>=0) job.atmoLocs[i]=l; else job.atmoLocs.push(l);
+    touch(job); closeModal(); render();
+  };
+  if(!isNew) $("#m_del").onclick=()=>confirmBox(`Delete ${esc(l.label)} and all its readings?`+(l.type==="chamber"?" Dehus in this chamber will be unlinked.":""),()=>{
+    job.atmoLocs=job.atmoLocs.filter(x=>x.id!==l.id); delete job.atmo[l.id];
+    for(const x of job.atmoLocs) if(x.chamberId===l.id) x.chamberId="";
+    touch(job); render();
+  });
+}
+
+/* --- Rooms & points --- */
+function tabRooms(job){
+  let h=`<div class="row" style="margin-bottom:12px"><button class="btn" onclick="roomForm(null)">+ Add room</button><span class="grow"></span></div>`;
+  if(!job.rooms.length) return h+`<div class="card empty">Add each room you are drying, plus an unaffected room for dry standards if you want them on record.</div>`;
+  job.rooms.forEach((room,idx)=>{
+    const pts=roomPoints(job,room.id);
+    h+=`<div class="card"><div class="row"><h3 class="grow" style="margin:0">${esc(room.name)} <span class="pill ${room.affected?"wet":"dry"}" style="font-weight:500">${room.affected?"Affected":"Unaffected"}</span>${room.level?` <span class="small muted" style="font-weight:400">${esc(room.level)}</span>`:""}</h3>
+      <button class="btn sec sm" onclick="moveRoom('${room.id}',-1)" ${idx===0?"disabled":""} aria-label="Move up">↑</button>
+      <button class="btn sec sm" onclick="roomForm('${room.id}')">Edit</button></div>
+      ${roomExtras(room)?`<div class="small muted" style="margin-top:4px">${roomExtras(room)}</div>`:""}
+      ${pts.map(p=>`<div class="pt" style="grid-template-columns:1fr auto"><div><div class="lbl">#${p.num} ${esc(p.label)}</div><div class="small muted">${esc(p.material)}${p.surface?" · "+esc(p.surface):""} · ${esc(p.mtype||"")} ${isNum(p.standard)?` · std ${p.standard}`:""} · dry goal <b>${isNum(p.goal)?p.goal:"not set"}</b>${p.goalNote?` · ${esc(p.goalNote)}`:""}${p.removed?` · <b style="color:var(--wetink)">removed ${fmtDate(p.removed)}</b>`:""}</div></div><button class="btn sec sm" onclick="pointForm('${room.id}','${p.id}')">Edit</button></div>`).join("")}
+      <div style="margin-top:8px"><button class="btn sec sm" onclick="pointForm('${room.id}',null)">+ Add moisture point</button></div></div>`;
+  });
+  return h;
+}
+function wetSf(room){const a=[["floor",room.sfFloor],["walls",room.sfWall],["ceiling",room.sfCeil]].filter(x=>isNum(x[1]));return a.length?"Wet SF: "+a.map(x=>`${x[0]} ${x[1]}`).join(", "):""}
+function roomExtras(room){return [wetSf(room),room.preExisting?"Pre-existing: "+esc(room.preExisting):""].filter(Boolean).join(" · ")}
+function moveRoom(id,dir){const job=curJob();const i=job.rooms.findIndex(r=>r.id===id);const j=i+dir;if(j<0||j>=job.rooms.length)return;[job.rooms[i],job.rooms[j]]=[job.rooms[j],job.rooms[i]];touch(job);render()}
+function roomForm(id){
+  const job=curJob(); const room=id?{...job.rooms.find(r=>r.id===id)}:{id:uid(),name:"",affected:true,cls:job.cls||"",level:"",sfFloor:null,sfWall:null,sfCeil:null,preExisting:""};
+  modal(`<h2>${id?"Edit room":"Add room"}</h2>
+    <label class="f">Room name<input id="m_name" value="${esc(room.name)}" placeholder="e.g. Basement family room"></label>
+    <label class="f">Condition<select id="m_aff"><option value="1" ${room.affected?"selected":""}>Affected</option><option value="0" ${room.affected?"":"selected"}>Unaffected (dry standard)</option></select></label>
+    <label class="f">Water class for this room<select id="m_rcls"><option value="">Not set</option>${["1","2","3","4"].map(c=>`<option value="${c}" ${c===String(room.cls||"")?"selected":""}>Class ${c}</option>`).join("")}</select></label>
+    <label class="f">Level<select id="m_lvl">${["","Basement","Main floor","2nd floor","3rd floor","Crawlspace","Attic"].map(x=>`<option value="${x}" ${x===(room.level||"")?"selected":""}>${x||"Not set"}</option>`).join("")}</select></label>
+    <div class="small muted" style="margin-bottom:4px">Wet square feet (optional)</div>
+    <div class="row" style="flex-wrap:nowrap">
+      <label class="f grow">Floor<input id="m_sff" inputmode="decimal" value="${isNum(room.sfFloor)?room.sfFloor:""}"></label>
+      <label class="f grow">Walls<input id="m_sfw" inputmode="decimal" value="${isNum(room.sfWall)?room.sfWall:""}"></label>
+      <label class="f grow">Ceiling<input id="m_sfc" inputmode="decimal" value="${isNum(room.sfCeil)?room.sfCeil:""}"></label>
+    </div>
+    <label class="f">Pre-existing conditions<textarea id="m_pre" rows="2" placeholder="e.g. old staining on north wall, prior damage">${esc(room.preExisting||"")}</textarea></label>
+    ${id?"":`<label class="f" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="m_ch" checked style="width:auto;margin:0"> Also add as an atmospheric chamber</label>`}
+    <div class="row">${id?`<button class="btn danger" id="m_del">Delete</button>`:""}<span class="grow"></span><button class="btn sec" onclick="closeModal()">Cancel</button><button class="btn" id="m_ok">Save</button></div>`);
+  setTimeout(()=>$("#m_name")?.focus(),50);
+  $("#m_ok").onclick=()=>{
+    room.name=$("#m_name").value.trim(); if(!room.name){toast("Name the room");return}
+    room.affected=$("#m_aff").value==="1";
+    room.cls=$("#m_rcls").value; room.level=$("#m_lvl").value; room.sfFloor=numOrNull($("#m_sff").value); room.sfWall=numOrNull($("#m_sfw").value); room.sfCeil=numOrNull($("#m_sfc").value);
+    room.preExisting=$("#m_pre").value.trim();
+    const i=job.rooms.findIndex(r=>r.id===room.id);
+    if(i>=0) job.rooms[i]=room; else {
+      job.rooms.push(room);
+      if($("#m_ch")?.checked && room.affected) job.atmoLocs.push({id:uid(),type:"chamber",label:room.name,roomId:room.id,chamberId:""});
+    }
+    touch(job); closeModal(); render();
+  };
+  if(id) $("#m_del").onclick=()=>confirmBox(`Delete ${esc(room.name)} and all its moisture points and readings?`,()=>{
+    const pids=job.points.filter(p=>p.roomId===id).map(p=>p.id);
+    pids.forEach(pid=>delete job.readings[pid]);
+    job.points=job.points.filter(p=>p.roomId!==id);
+    job.rooms=job.rooms.filter(r=>r.id!==id);
+    for(const l of job.atmoLocs) if(l.roomId===id) l.roomId="";
+    touch(job); render();
+  });
+}
+function pointForm(roomId,pid){
+  const job=curJob();
+  const last=job.points.filter(p=>p.roomId===roomId).slice(-1)[0]||job.points.slice(-1)[0];
+  const p=pid?{...job.points.find(x=>x.id===pid)}:{id:uid(),roomId,num:job.nextPoint||1,label:"",material:last?.material||"Drywall",meter:last?.meter||METERS[0],mtype:last?.mtype||"Invasive",surface:last?.surface||"Walls",standard:null,goal:null,goalNote:"",removed:""};
+  const sameMat=()=>{ const m=$("#m_mat").value, t=$("#m_mt").value; const g=job.points.find(x=>x.material===m&&x.mtype===t&&isNum(x.goal)&&x.id!==p.id); return g?g.goal:null };
+  modal(`<h2>${pid?"Edit":"Add"} moisture point</h2>
+    <div class="grid2">
+      <label class="f">Point number<input id="m_num" inputmode="numeric" value="${p.num}"></label>
+      <label class="f">Room<select id="m_room">${job.rooms.map(r=>`<option value="${r.id}" ${r.id===p.roomId?"selected":""}>${esc(r.name)}</option>`).join("")}</select></label>
+    </div>
+    <label class="f">Location<input id="m_lab" value="${esc(p.label)}" placeholder="e.g. North wall, 12 in. AFF"></label>
+    <div class="grid2">
+      <label class="f">Material<select id="m_mat">${MATERIALS.map(m=>`<option ${m===p.material?"selected":""}>${m}</option>`).join("")}</select></label>
+      <label class="f">Surface<select id="m_surf">${SURFACES.map(m=>`<option ${m===p.surface?"selected":""}>${m}</option>`).join("")}</select></label>
+      <label class="f">Meter<input id="m_met" list="meters" value="${esc(p.meter||"")}"><datalist id="meters">${METERS.map(m=>`<option value="${m}">`).join("")}</datalist></label>
+      <label class="f">Type<select id="m_mt">${MTYPES.map(m=>`<option ${m===p.mtype?"selected":""}>${m}</option>`).join("")}</select></label>
+    </div>
+    <div class="grid2">
+      <label class="f">Dry standard reading<input id="m_std" inputmode="decimal" value="${isNum(p.standard)?p.standard:""}" placeholder="same material, unaffected"></label>
+      <label class="f">Dry goal<input id="m_goal" inputmode="decimal" value="${isNum(p.goal)?p.goal:""}" placeholder="defaults to standard"></label>
+    </div>
+    <label class="f">Dry standard taken at<input id="m_gn" value="${esc(p.goalNote||"")}" placeholder="e.g. Hall closet, same wall"></label>
+    <div class="small muted" id="m_hint" style="margin:-4px 0 10px"></div>
+    ${pid?`<label class="f">Removed (tear-out) date<input type="date" id="m_rem" value="${esc(p.removed||"")}"></label><div class="small muted" style="margin:-4px 0 10px">Set this when the material is removed. The point stops counting toward dry and the log shows "Removed" from that date.</div>`:""}
+    <div class="row">${pid?`<button class="btn danger" id="m_del">Delete</button><button class="btn sec" id="m_dup">Copy to…</button>`:""}<span class="grow"></span><button class="btn sec" onclick="closeModal()">Cancel</button>${pid?"":`<button class="btn sec" id="m_more">Save + next</button>`}<button class="btn" id="m_ok">Save</button></div>`);
+  let goalTouched=isNum(p.goal)&&p.goal!==p.standard;
+  $("#m_goal").addEventListener("input",()=>{goalTouched=$("#m_goal").value.trim()!==""});
+  $("#m_std").addEventListener("input",()=>{if(!goalTouched)$("#m_goal").value=$("#m_std").value});
+  const hint=()=>{const g=sameMat(); $("#m_hint").innerHTML=g!==null&&!$("#m_goal").value?`Other ${esc($("#m_mat").value.toLowerCase())} points on this job use a goal of ${g}. <a href="javascript:void 0" id="m_use">Use ${g}</a>`:""; const u=$("#m_use"); if(u) u.onclick=()=>{$("#m_goal").value=g;goalTouched=true;hint()}};
+  $("#m_mat").onchange=hint; $("#m_mt").onchange=hint; $("#m_goal").oninput=hint; $("#m_std").oninput=hint; hint();
+  setTimeout(()=>$("#m_lab")?.focus(),50);
+  const save=()=>{
+    const num=parseInt($("#m_num").value,10); if(!(num>0)){toast("Point number must be a number");return false}
+    p.num=num; p.roomId=$("#m_room").value; p.label=$("#m_lab").value.trim(); p.material=$("#m_mat").value; p.surface=$("#m_surf").value; p.meter=$("#m_met").value.trim(); p.mtype=$("#m_mt").value;
+    const sd=$("#m_std").value.trim(); p.standard=numOrNull(sd); if(sd&&p.standard===null){toast("Dry standard must be a number");return false}
+    const g=$("#m_goal").value.trim(); p.goal=numOrNull(g); if(g&&p.goal===null){toast("Dry goal must be a number");return false}
+    if(p.goal===null&&p.standard!==null) p.goal=p.standard;
+    if($("#m_rem")) p.removed=$("#m_rem").value||"";
+    p.goalNote=$("#m_gn").value.trim();
+    if(!p.label){toast("Enter a location");return false}
+    const i=job.points.findIndex(x=>x.id===p.id); if(i>=0) job.points[i]=p; else job.points.push(p);
+    job.nextPoint=Math.max(job.nextPoint||1,...job.points.map(x=>x.num+1));
+    touch(job); return true;
+  };
+  $("#m_ok").onclick=()=>{if(save()){closeModal();render()}};
+  if(!pid) $("#m_more").onclick=()=>{if(save()){closeModal();render();pointForm(p.roomId,null)}};
+  if(pid) $("#m_dup").onclick=()=>{ if(save()){ closeModal(); copyPoint(p) } };
+  if(pid) $("#m_del").onclick=()=>confirmBox(`Delete point #${p.num} and all its readings?`,()=>{job.points=job.points.filter(x=>x.id!==pid);delete job.readings[pid];touch(job);render()});
+}
+
+function copyPoint(src){
+  const job=curJob();
+  modal(`<h2>Copy point #${src.num}</h2><p class="small muted">Creates a new point with the same material, meter, dry standard and goal. Readings are not copied.</p>
+    <label class="f">Room<select id="m_room">${job.rooms.map(r=>`<option value="${r.id}" ${r.id===src.roomId?"selected":""}>${esc(r.name)}</option>`).join("")}</select></label>
+    <label class="f">Location<input id="m_lab" value="${esc(src.label)}"></label>
+    <div class="row"><span class="grow"></span><button class="btn sec" onclick="closeModal()">Cancel</button><button class="btn" id="m_ok">Copy</button></div>`);
+  $("#m_ok").onclick=()=>{
+    const n={...src,id:uid(),roomId:$("#m_room").value,label:$("#m_lab").value.trim()||src.label,num:job.nextPoint||1,removed:""};
+    job.points.push(n); job.nextPoint=n.num+1; touch(job); closeModal(); render(); toast(`Added point #${n.num}`);
+  };
+}
+
+/* --- Job info --- */
+function tabInfo(job){
+  const v=(k)=>esc(job[k]||"");
+  return `<div class="card"><form onsubmit="event.preventDefault()" onchange="infoChange(event)">
+    <div class="grid2">
+      <label class="f">Customer name<input name="customer" value="${v("customer")}"></label>
+      <label class="f">Internal job number<input name="jobNumber" value="${v("jobNumber")}"></label>
+    </div>
+    <label class="f">Property address<input name="address" value="${v("address")}"></label>
+    <div class="grid2">
+      <label class="f">Customer phone<input type="tel" name="phone" value="${v("phone")}"></label>
+      <label class="f">Customer email<input type="email" name="email" value="${v("email")}"></label>
+      <label class="f">Insurance company<input name="carrier" value="${v("carrier")}"></label>
+      <label class="f">Adjuster<input name="adjuster" value="${v("adjuster")}"></label>
+      <label class="f">Claim number<input name="claim" value="${v("claim")}"></label>
+      <label class="f">Policy number<input name="policy" value="${v("policy")}"></label>
+      <label class="f">First notice of loss<input type="datetime-local" name="fnol" value="${v("fnol")}"></label>
+      <label class="f">Date contacted<input type="datetime-local" name="contacted" value="${v("contacted")}"></label>
+      <label class="f">Arrived on site<input type="datetime-local" name="arrived" value="${v("arrived")}"></label>
+      <label class="f">Date of loss<input type="date" name="dol" value="${v("dol")}"></label>
+      <label class="f">Status<select name="status">${STATUSES.map(s=>`<option ${s===job.status?"selected":""}>${s}</option>`).join("")}</select></label>
+      <label class="f">Water category<select name="category"><option value="">Select</option>${["1","2","3"].map(s=>`<option value="${s}" ${s===job.category?"selected":""}>Category ${s}</option>`).join("")}</select></label>
+      <label class="f">Water class<select name="cls"><option value="">Select</option>${["1","2","3","4"].map(s=>`<option value="${s}" ${s===job.cls?"selected":""}>Class ${s}</option>`).join("")}</select></label>
+      <label class="f">Drying start date<input type="date" name="startDate" value="${v("startDate")}"></label>
+      <label class="f">Dry-out confirmed date<input type="date" name="dryOutDate" value="${v("dryOutDate")}"></label>
+    </div>
+    <div class="grid2">
+      <label class="f">Job source<input name="source" list="sources" value="${v("source")}"><datalist id="sources"><option value="Carrier referral"><option value="TPA / program"><option value="Plumber referral"><option value="Property manager"><option value="Direct / homeowner"><option value="Agent referral"></datalist></label>
+      <label class="f">Cause of loss<input name="cause" list="causes" value="${v("cause")}"><datalist id="causes"><option value="Supply line"><option value="Water heater"><option value="Sump pump failure"><option value="Sewer backup"><option value="Frozen pipe"><option value="Roof leak"><option value="Appliance"><option value="Storm / groundwater"></datalist></label>
+    </div>
+    <label class="f">Notes (printed on the dry log)<textarea name="notes" rows="3">${v("notes")}</textarea></label>
+  </form></div>
+  <div class="row"><span class="grow"></span>${!sb||isAdmin()?`<button class="btn danger" onclick="deleteJob('${job.id}')">Delete job</button>`:""}</div>`;
+}
+function infoChange(e){
+  const job=curJob(); const el=e.target; if(!el.name) return;
+  job[el.name]=el.value; touch(job);
+  if(el.name==="status"||el.name==="customer") ui.pendingRender=true;
+}
+function deleteJob(id){
+  const job=state.jobs[id];
+  if(sb && !isAdmin()){toast("Only an admin can delete a job");return}
+  confirmBox(`Delete the job for ${esc(job.customer||"this customer")}? This removes all its readings${Sync.db?" for everyone":""}.`,()=>{job.deleted=true;touch(job);go("jobs")});
+}
+function jobForm(job,isNew){
+  modal(`<h2>New job</h2>
+    <label class="f">Customer name<input id="m_cust"></label>
+    <label class="f">Property address<input id="m_addr"></label>
+    <div class="grid2">
+      <label class="f">Internal job number<input id="m_jn"></label>
+      <label class="f">Date of loss<input type="date" id="m_dol"></label>
+      <label class="f">Water category<select id="m_cat"><option value="">Select</option><option value="1">Category 1</option><option value="2">Category 2</option><option value="3">Category 3</option></select></label>
+      <label class="f">Water class<select id="m_cls"><option value="">Select</option><option value="1">Class 1</option><option value="2">Class 2</option><option value="3">Class 3</option><option value="4">Class 4</option></select></label>
+    </div>
+    <div class="small muted" style="margin-bottom:10px">Carrier, claim number and dates are on the Job info tab.</div>
+    <div class="row"><span class="grow"></span><button class="btn sec" onclick="closeModal()">Cancel</button><button class="btn" id="m_ok">Create job</button></div>`);
+  setTimeout(()=>$("#m_cust")?.focus(),50);
+  $("#m_ok").onclick=()=>{
+    job.customer=$("#m_cust").value.trim(); job.address=$("#m_addr").value.trim(); job.jobNumber=$("#m_jn").value.trim();
+    job.dol=$("#m_dol").value; job.category=$("#m_cat").value; job.cls=$("#m_cls").value;
+    if(!job.customer&&!job.jobNumber){toast("Enter a customer name or job number");return}
+    state.jobs[job.id]=job; touch(job); closeModal(); ui.tab="rooms"; ui.date=today(); ui.atmoDate=today(); go("job-"+job.id);
+  };
+}
+
+/* ---------- Dry log report ---------- */
+function tabReport(job){
+  return `<div class="card noprint"><div class="row">
+      <button class="btn" id="pdfbtn" onclick="downloadPdf('${job.id}')">Download PDF</button>
+      <button class="btn sec" id="printbtn" onclick="window.print()" style="display:none">Print</button>
+      <span class="grow"></span>
+    </div>
+    <div class="small muted" style="margin-top:6px">Preview below. Laid out like the DryTrack Water Mitigation Report, letter size.</div></div>
+    <div class="card rep" id="rep">${reportHtml(job)}</div>`;
+}
+function afterReport(job){
+  // Printing works when hosted on its own; the Claude preview frame blocks it.
+  const inFrame = (()=>{try{return window.self!==window.top}catch(e){return true}})();
+  if(!inFrame) $("#printbtn").style.display="";
+}
+function fmtTime(t){if(!t)return "";const [H,M]=t.split(":").map(Number);return `${(H%12)||12}:${String(M).padStart(2,"0")} ${H<12?"AM":"PM"}`}
+function editedMark(job,pid,d){const r=job.readings[pid]?.[d];return r&&r.editedAt?`<sup title="Edited ${new Date(r.editedAt).toLocaleString()} by ${esc(r.editedBy||"")}, originally ${r.orig}">*</sup>`:""}
+function dayNum(start,d){const a=new Date(start+"T12:00"),b=new Date(d+"T12:00");const n=Math.round((b-a)/864e5)+1;return n>=1?n:"—"}
+
+async function downloadPdf(id){
+  const job=state.jobs[id];
+  if(!window.jspdf){toast("PDF library did not load");return}
+  const btn=$("#pdfbtn"); btn.disabled=true; btn.textContent="Building PDF…";
+  try{
+    const doc=buildPdf(job);
+    const name=`DryLog_${(job.jobNumber||job.customer||"job").replace(/[^A-Za-z0-9]+/g,"_")}_${today()}.pdf`;
+    await saveFile(name, doc.output("blob"));
+  }catch(e){console.error(e);toast("Could not build the PDF")}
+  finally{btn.disabled=false;btn.textContent="Download PDF"}
+}
+async function saveFile(name,blob){
+  let dl=null;
+  try{ if(window.claude&&window.claude.use) dl=await Promise.race([window.claude.use("downloads"),new Promise(r=>setTimeout(()=>r(null),3000))]) }catch(e){dl=null}
+  if(dl){
+    try{await dl.save({filename:name,data:blob}); toast("Saved "+name)}
+    catch(e){ if(e&&e.code==="declined") return; toast("Download not available here ("+(e&&e.code||"error")+")") }
+    return;
+  }
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000);
+}
+const LOGO="data:image/png;base64,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";
+function reportModel(job){
+  const dates=visitDates(job);
+  const vnum={}; dates.forEach((d,i)=>vnum[d]=i+1);
+  const mDates=dates.filter(d=>job.points.some(p=>isNum(readingOn(job,p.id,d))));
+  const locs=sortedLocs(job);
+  const aDates=dates.filter(d=>locs.some(l=>isNum(atmoCalc(job,l.id,d).gpp)));
+  return {dates,vnum,mDates,locs,aDates,prog:jobProgress(job)};
+}
+function fmtDT(v){ if(!v) return ""; const [d,t]=v.split("T"); return fmtDateLong(d)+(t?" "+fmtTime(t.slice(0,5)):"") }
+function elapsed(from,to){
+  if(!from||!to) return "";
+  const ms=new Date(to)-new Date(from); if(!(ms>=0)) return "";
+  const m=Math.round(ms/60000), d=Math.floor(m/1440), h=Math.floor((m%1440)/60), mm=m%60;
+  return [d?`${d} day${d>1?"s":""}`:"",h?`${h} hr`:"",`${mm} min`].filter(Boolean).join(" ");
+}
+function duration(a,b){
+  if(!a||!b) return "";
+  const [h1,m1]=a.split(":").map(Number),[h2,m2]=b.split(":").map(Number);
+  let m=(h2*60+m2)-(h1*60+m1); if(m<0) m+=1440;
+  return `${Math.floor(m/60)} hr ${m%60} min`;
+}
+function i0(n){return isNum(n)?String(Math.round(n)):""}
+function vlabel(m,d){return `${m.vnum[d]}  (${fmtDate(d)})`}
+
+/* Builds the dry log as data: header blocks + sections of tables.
+   Both the on-screen preview and the PDF render from this, so they always match.
+   Cell: string or {t, bg:"dry"|"wet"|"group", b:bold, span} */
+function reportDoc(job){
+  const m=reportModel(job);
+  const cell=(t,o={})=>Object.assign({t:t==null?"":String(t)},o);
+  const doc={m,sections:[]};
+  doc.info=[
+    {title:"Policyholder Information",rows:[["Customer",job.customer],["Address",job.address],["E-mail",job.email],["Phone",job.phone],["Job number",job.jobNumber],["Report generated",fmtDateLong(today())]]},
+    {title:"Insurance Information",rows:[["Insurance company",job.carrier],["Adjuster",job.adjuster],["Claim number",job.claim],["Policy number",job.policy],["Date of loss",fmtDateLong(job.dol)],["Cause of loss",job.cause]]},
+    {title:"Job Dates",rows:[
+      ["First notice of loss",fmtDT(job.fnol)],
+      ["Date contacted",fmtDT(job.contacted)+(elapsed(job.fnol,job.contacted)?`\n${elapsed(job.fnol,job.contacted)} to contact`:"")],
+      ["Arrived on site",fmtDT(job.arrived)+(elapsed(job.fnol,job.arrived)?`\n${elapsed(job.fnol,job.arrived)} to arrive`:"")],
+      ["Drying started",fmtDateLong(job.startDate)],
+      ["Drying completed",fmtDateLong(job.dryOutDate)],
+      ["Water category / class",[job.category?"Cat "+job.category:"",job.cls?"Class "+job.cls:""].filter(Boolean).join(" / ")]]}
+  ];
+  // Drying standards
+  const stdMap=new Map();
+  for(const p of job.points){
+    if(!isNum(p.goal)&&!isNum(p.standard)) continue;
+    const key=[p.material,p.meter,p.mtype,p.standard,p.goal].join("|");
+    const room=job.rooms.find(r=>r.id===p.roomId)?.name||"";
+    if(!stdMap.has(key)) stdMap.set(key,{p,rooms:new Set(),src:p.goalNote});
+    stdMap.get(key).rooms.add(room); if(!stdMap.get(key).src&&p.goalNote) stdMap.get(key).src=p.goalNote;
+  }
+  doc.sections.push({title:"Drying Standards for Job",tables:[{
+    head:["Material","Meter","Type","Drying Standard","Goal Deviation","Goal","Standard Taken At","Applies To"],
+    body:[...stdMap.values()].map(({p,rooms,src})=>{const dev=isNum(p.standard)&&isNum(p.goal)&&p.standard!==0?Math.round((p.goal-p.standard)/p.standard*100)+"%":"";return [p.material,p.meter||"",p.mtype||"",isNum(p.standard)?p.standard:"",dev,isNum(p.goal)?p.goal:"",src||"",[...rooms].join(", ")]}),
+    empty:"No drying standards recorded.",widths:{3:52,4:48,5:36}
+  }]});
+  // Visits
+  doc.sections.push({title:"Visits",tables:[{
+    head:["Visit","Date","Arrival","Departure","Duration","Day","Technician","HVAC","Notes"],
+    body:m.dates.map(d=>{const v=job.visits?.[d]||{};return [m.vnum[d],fmtDateLong(d),fmtTime(v.arrival),fmtTime(v.depart),duration(v.arrival,v.depart),job.startDate?dayNum(job.startDate,d):"",techsForDate(job,d),v.hvac||"",v.notes||""]}),
+    empty:"No visits recorded.",widths:{0:30,1:56,2:46,3:50,4:52,5:26,7:32}
+  }]});
+  // Rooms
+  doc.sections.push({title:"Rooms",tables:[{
+    head:["Name","Class","Level","Condition","Floor SF Wet","Walls SF Wet","Ceiling SF Wet","Status","Pre-existing Conditions"],
+    body:job.rooms.map(r=>{const rs=roomStatus(job,r);return [r.name,r.cls||"",r.level||"",r.affected?"Affected":"Unaffected",isNum(r.sfFloor)?r.sfFloor:"",isNum(r.sfWall)?r.sfWall:"",isNum(r.sfCeil)?r.sfCeil:"",cell(rs.state==="dry"?"Dry":rs.state==="wet"?`${rs.dry}/${rs.total} at goal`:"",{bg:rs.state==="dry"?"dry":rs.state==="wet"?"wet":""}),r.preExisting||""]}),
+    empty:"No rooms recorded.",widths:{1:32,2:56,3:56,4:40,5:40,6:44}
+  }]});
+  // Moisture readings summary
+  const sum=[];
+  for(const room of job.rooms){
+    const pts=roomPoints(job,room.id); if(!pts.length) continue;
+    sum.push([cell(room.name,{bg:"group",span:6})]);
+    const groups=new Map();
+    for(const p of pts){const k=[p.material,p.meter,p.mtype,p.goal].join("|"); if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(p)}
+    for(const [,gp] of groups){
+      const p0=gp[0];
+      for(const d of m.mDates){
+        const vals=gp.map(p=>readingOn(job,p.id,d)).filter(isNum); if(!vals.length) continue;
+        const avg=vals.reduce((a,b)=>a+b,0)/vals.length; const st=cellState(avg,p0.goal);
+        sum.push([vlabel(m,d),p0.material,p0.meter||"",p0.mtype||"",isNum(p0.goal)?p0.goal:"",cell(Number.isInteger(avg)?avg:avg.toFixed(1),{bg:st,b:true})]);
+      }
+    }
+  }
+  doc.sections.push({title:"Moisture Readings Summary",tables:[{head:["Visit","Material","Meter","Type","Goal","Avg"],body:sum,empty:"No moisture readings recorded.",widths:{0:80,4:40,5:40}}],
+    note:"Avg is the average of all points of the same material, meter and type in the room for that visit. Green is at or below goal, red is above."});
+  // Atmospheric summary (chart) + detail
+  doc.chart=atmoChartData(job,m);
+  const det=[];
+  for(const l of m.locs){
+    let first=true;
+    for(const d of m.aDates){
+      const c=atmoCalc(job,l.id,d); if(!isNum(c.gpp)) continue;
+      const gd=l.type==="dehu"?grainDepression(job,l,d):null;
+      det.push({sep:first,row:[vlabel(m,d),ATMO_TYPES[l.type],locLabel(job,l),i0(c.t),i0(c.rh),i0(c.gpp),i0(c.dp),cell(isNum(gd)?i0(gd):"",{b:true,bg:isNum(gd)?(gd>0?"dry":"wet"):""})]});
+      first=false;
+    }
+  }
+  doc.sections.push({title:"Atmospheric Readings Detail",tables:[{head:["Visit","Area Type","Area / Dehu","Temperature (°F)","Relative Humidity (%)","GPP","Dew Point (°F)","Grain Depression"],body:det.map(x=>x.row),seps:det.map(x=>x.sep),empty:"No atmospheric readings recorded.",widths:{0:70,3:58,4:62,5:36,6:50,7:58}}],
+    note:"GPP = grains of moisture per pound of dry air. Grain depression = affected chamber GPP minus dehumidifier outlet GPP for the same visit. Calculated at sea-level pressure."});
+  // Moisture content detail: one small table per point
+  const chunks=[]; for(let i=0;i<m.mDates.length;i+=10) chunks.push(m.mDates.slice(i,i+10)); if(!chunks.length) chunks.push([]);
+  const det2=[];
+  for(const room of job.rooms){
+    for(const p of roomPoints(job,room.id)){
+      const title=[room.name,p.material,p.surface,`#${p.num} ${p.label}`,p.meter,p.mtype].filter(Boolean).join(" / ")+(p.removed?`  (removed ${fmtDateLong(p.removed)})`:"");
+      for(const ds of chunks){
+        det2.push({title,head:["Visit",...ds.map(d=>`${m.vnum[d]}\n${fmtDate(d)}`),"Goal"],
+          body:[["",...ds.map(d=>{const v=readingOn(job,p.id,d); if(!isNum(v)&&isRemoved(p,d)) return cell("Removed"); const r=job.readings[p.id]?.[d]; return cell(isNum(v)?v+(r&&r.editedAt?"*":""):"",{bg:cellState(v,p.goal)})}),cell(isNum(p.goal)?p.goal:"",{b:true})]],
+          widths:{0:40}});
+      }
+    }
+  }
+  doc.sections.push({title:"Moisture Content Detail",tables:det2.length?det2:[{head:["Visit"],body:[],empty:"No moisture points recorded."}],
+    note:"Green is at or below dry goal, red is above. * reading changed after it was first entered."});
+  return doc;
+}
+function atmoChartData(job,m){
+  const series=m.locs.filter(l=>l.type!=="hvac").map(l=>({label:locLabel(job,l),type:l.type,vals:m.aDates.map(d=>atmoCalc(job,l.id,d).gpp)})).filter(s=>s.vals.some(isNum));
+  return {x:m.aDates.map(d=>`${m.vnum[d]} (${fmtDate(d)})`),series};
+}
+const CHART_COLORS=["#2f6db5","#d9822b","#3a9b5c","#c0392b","#7d55c7","#16a2b8","#8c6d1f","#d35fa0","#5f6b7a","#1f3b73"];
+function chartSvg(ch){
+  if(!ch.series.length) return "";
+  const W=760,H=240,L=44,R=12,T=12,B=34;
+  const all=ch.series.flatMap(s=>s.vals.filter(isNum)); let max=Math.max(...all), min=Math.min(...all,0);
+  max=Math.ceil((max+5)/10)*10; min=Math.floor(min/10)*10;
+  const n=ch.x.length, xs=i=>L+(n===1?(W-L-R)/2:i*(W-L-R)/(n-1)), ys=v=>T+(H-T-B)*(1-(v-min)/(max-min||1));
+  let g=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;font:11px sans-serif">`;
+  for(let v=min;v<=max;v+=10){g+=`<line x1="${L}" x2="${W-R}" y1="${ys(v)}" y2="${ys(v)}" stroke="#e3e7ec"/><text x="${L-6}" y="${ys(v)+4}" text-anchor="end" fill="#555">${v}</text>`}
+  ch.x.forEach((x,i)=>{g+=`<text x="${xs(i)}" y="${H-B+16}" text-anchor="middle" fill="#555">${esc(x)}</text>`});
+  g+=`<text x="12" y="${T+(H-T-B)/2}" transform="rotate(-90 12 ${T+(H-T-B)/2})" text-anchor="middle" fill="#555">GPP</text>`;
+  ch.series.forEach((s,k)=>{const c=CHART_COLORS[k%CHART_COLORS.length];const pts=s.vals.map((v,i)=>isNum(v)?`${xs(i)},${ys(v)}`:null);
+    let path="",pen=false; pts.forEach(p=>{if(p){path+=(pen?"L":"M")+p;pen=true}else pen=false});
+    g+=`<path d="${path}" fill="none" stroke="${c}" stroke-width="2" ${s.type==="dehu"?'stroke-dasharray="5 3"':""}/>`;
+    pts.forEach(p=>{if(p){const [x,y]=p.split(",");g+=`<rect x="${x-3}" y="${y-3}" width="6" height="6" fill="#fff" stroke="${c}" stroke-width="1.5"/>`}});
+  });
+  g+=`</svg><div style="display:flex;flex-wrap:wrap;gap:4px 14px;font-size:11px;margin-top:4px">${ch.series.map((s,k)=>`<span><span style="display:inline-block;width:14px;height:3px;background:${CHART_COLORS[k%CHART_COLORS.length]};vertical-align:middle;margin-right:4px"></span>${esc(s.label)}</span>`).join("")}</div>`;
+  return g;
+}
+function reportHtml(job){
+  const r=reportDoc(job);
+  const td=(c,tag="td")=>{ if(c==null||typeof c!=="object") c={t:c==null?"":String(c)};
+    const st=c.bg==="dry"?"background:#c6f08a":c.bg==="wet"?"background:#f8c9c9":c.bg==="group"?"background:#6a8faf;color:#fff;font-weight:700;text-align:left":"";
+    return `<${tag}${c.span?` colspan="${c.span}"`:""} style="${st}${c.b?";font-weight:700":""}">${esc(c.t).replace(/\n/g,"<br>")}</${tag}>`};
+  let h=`<div class="rh"><div class="rh-l"><img src="${LOGO}" alt="weDRY" style="width:150px;max-width:100%"><div style="font-size:9px;color:#666">Prepared with ${APP}</div></div><div class="rh-c"><div class="rt">Water Mitigation Report</div>${esc(COMPANY.name)}<br>${esc(COMPANY.addr1)}<br>${esc(COMPANY.addr2)}<br>${esc(COMPANY.phone)}</div><div class="rh-l"></div></div>`;
+  h+=`<div class="info">${r.info.map(b=>`<div><div class="it">${b.title}</div>${b.rows.map(([k,v])=>`<div class="ir"><b>${k}:</b><span>${String(v||"").split("\n").map((t,i)=>i?`<br><i>${esc(t)}</i>`:esc(t)).join("")}</span></div>`).join("")}</div>`).join("")}</div>`;
+  const sec=(s)=>{
+    let x=`<div class="sec"><div class="st">${s.title}</div>`;
+    for(const t of s.tables){
+      if(t.title) x+=`<div class="pt2">${esc(t.title)}</div>`;
+      x+=`<table><thead><tr>${t.head.map(c=>td(c,"th")).join("")}</tr></thead><tbody>`;
+      if(!t.body.length) x+=`<tr><td colspan="${t.head.length}" style="text-align:left">${t.empty||""}</td></tr>`;
+      t.body.forEach((row,i)=>{x+=`<tr${t.seps&&t.seps[i]&&i>0?' class="sep"':""}>${row.map(c=>td(c)).join("")}</tr>`});
+      x+=`</tbody></table>`;
+    }
+    if(s.note) x+=`<div class="rn">${s.note}</div>`;
+    return x+`</div>`;
+  };
+  const secs=r.sections;
+  h+=secs.slice(0,4).map(sec).join("");
+  h+=`<div class="sec"><div class="st">Atmospheric Readings Summary</div>${r.chart.series.length?chartSvg(r.chart):`<div style="padding:6px">No atmospheric readings recorded.</div>`}</div>`;
+  h+=secs.slice(4).map(sec).join("");
+  if(job.notes) h+=`<div class="sec"><div class="st">Notes</div><div style="white-space:pre-wrap;padding:6px">${esc(job.notes)}</div></div>`;
+  h+=`<div class="sig"><div>Technician signature</div><div>Date</div></div><div class="sig"><div>Printed name</div><div>IICRC cert. #</div></div>`;
+  return h;
+}
+
+function buildPdf(job){
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:"portrait",unit:"pt",format:"letter"});
+  const W=doc.internal.pageSize.getWidth(), H=doc.internal.pageSize.getHeight(), M=30;
+  const r=reportDoc(job);
+  const STEEL=[106,143,175], CYAN=[221,243,247], TITLE=[47,94,150], DRY=[198,240,138], WET=[248,201,201], ALT=[230,230,230];
+  // header
+  try{doc.addImage(LOGO,"PNG",M,M+4,122,30)}catch(e){}
+  doc.setFont("helvetica","normal");doc.setFontSize(7);doc.setTextColor(110);doc.text("Prepared with "+APP,M,M+46);
+  doc.setTextColor(...TITLE);doc.setFont("times","bold");doc.setFontSize(18);doc.text("Water Mitigation Report",W/2,M+12,{align:"center"});
+  doc.setTextColor(0);doc.setFont("times","normal");doc.setFontSize(9);
+  [COMPANY.name,COMPANY.addr1,COMPANY.addr2,COMPANY.phone].forEach((t,i)=>doc.text(t,W/2,M+26+i*11,{align:"center"}));
+  // info columns
+  let y=M+80; const colW=(W-2*M)/3; let maxY=y;
+  r.info.forEach((b,ci)=>{
+    const x=M+ci*colW; let yy=y;
+    doc.setFont("times","bold");doc.setFontSize(10.5);doc.setTextColor(...TITLE);doc.text(b.title,x,yy);yy+=14;doc.setTextColor(0);
+    for(const [k,v] of b.rows){
+      doc.setFont("times","bold");doc.setFontSize(8.5);doc.text(k+":",x,yy);
+      doc.setFont("times","normal");
+      const parts=String(v||"").split("\n"); const lines=doc.splitTextToSize(parts[0]||"",colW-92);
+      doc.text(lines,x+86,yy); yy+=lines.length*10;
+      if(parts[1]){doc.setFont("times","italic");doc.setTextColor(...TITLE);const l2=doc.splitTextToSize(parts[1],colW-92);doc.text(l2,x+86,yy);yy+=l2.length*10;doc.setTextColor(0)}
+      yy+=2;
+    }
+    maxY=Math.max(maxY,yy);
+  });
+  y=maxY+8;
+  const secTitle=(title)=>{
+    if(y>H-90){doc.addPage();y=M}
+    doc.setFillColor(...CYAN);doc.setDrawColor(0);doc.setLineWidth(.6);doc.rect(M,y,W-2*M,18,"FD");
+    doc.setFont("times","bold");doc.setFontSize(10.5);doc.setTextColor(0);doc.text(title,M+6,y+12.5);y+=18;
+  };
+  const fill=c=>c==="dry"?DRY:c==="wet"?WET:c==="group"?STEEL:null;
+  const toCell=c=>{ if(c==null||typeof c!=="object") return {content:c==null?"":String(c)};
+    const o={content:c.t}; o.styles={}; const f=fill(c.bg); if(f) o.styles.fillColor=f; if(c.bg==="group"){o.styles.textColor=255;o.styles.fontStyle="bold";o.styles.fontSize=9} if(c.b) o.styles.fontStyle="bold"; if(c.span) o.colSpan=c.span; return o};
+  const table=(t)=>{
+    if(t.title){ if(y>H-80){doc.addPage();y=M} doc.setFillColor(...STEEL);doc.rect(M,y,W-2*M,15,"F");doc.setTextColor(255);doc.setFont("times","bold");doc.setFontSize(9);doc.text(doc.splitTextToSize(t.title,W-2*M-10)[0],M+5,y+10.5);doc.setTextColor(0);y+=15 }
+    const body=t.body.length?t.body.map(row=>row.map(toCell)):[[{content:t.empty||"",colSpan:t.head.length,styles:{halign:"left"}}]];
+    const cs={}; for(const k in (t.widths||{})) cs[k]={cellWidth:t.widths[k]};
+    doc.autoTable({startY:y,head:[t.head],body,theme:"grid",margin:{left:M,right:M},
+      styles:{font:"times",fontSize:8,cellPadding:2.5,lineColor:[150,150,150],lineWidth:.4,textColor:0,valign:"middle"},
+      headStyles:{fillColor:STEEL,textColor:255,fontStyle:"bold",fontSize:8.5},
+      alternateRowStyles:{fillColor:ALT},columnStyles:cs,
+      didDrawCell:(dt)=>{ if(t.seps&&dt.section==="body"&&dt.column.index===0&&t.seps[dt.row.index]&&dt.row.index>0){doc.setDrawColor(0);doc.setLineWidth(1.6);doc.line(M,dt.cell.y,W-M,dt.cell.y);doc.setLineWidth(.4)} }
+    });
+    y=doc.lastAutoTable.finalY;
+  };
+  const note=(s)=>{ if(!s.note) return; doc.setFont("times","italic");doc.setFontSize(7.5);doc.setTextColor(70);const l=doc.splitTextToSize(s.note,W-2*M);if(y+l.length*9+6>H-40){doc.addPage();y=M}doc.text(l,M,y+9);y+=l.length*9+4;doc.setTextColor(0)};
+  const drawSection=(s)=>{ secTitle(s.title); for(const t of s.tables) table(t); note(s); y+=10 };
+  r.sections.slice(0,4).forEach(drawSection);
+  // chart
+  secTitle("Atmospheric Readings Summary");
+  if(r.chart.series.length){
+    const ch=r.chart, cw=W-2*M, chH=190; if(y+chH+40>H-40){doc.addPage();y=M;secTitle("Atmospheric Readings Summary")}
+    doc.setDrawColor(0);doc.setLineWidth(.6);doc.rect(M,y,cw,chH+40);
+    const L=M+36,R=M+cw-12,T=y+12,B=y+chH-14;
+    const all=ch.series.flatMap(s=>s.vals.filter(isNum)); let max=Math.ceil((Math.max(...all)+5)/10)*10, min=Math.floor(Math.min(...all,0)/10)*10;
+    const n=ch.x.length, xs=i=>L+(n===1?(R-L)/2:i*(R-L)/(n-1)), ys=v=>T+(B-T)*(1-(v-min)/(max-min||1));
+    doc.setFont("helvetica","normal");doc.setFontSize(7);doc.setTextColor(80);
+    for(let v=min;v<=max;v+=10){doc.setDrawColor(225);doc.setLineWidth(.4);doc.line(L,ys(v),R,ys(v));doc.text(String(v),L-4,ys(v)+2.5,{align:"right"})}
+    ch.x.forEach((x,i)=>doc.text(x,xs(i),B+11,{align:"center"}));
+    doc.text("GPP",M+8,(T+B)/2,{angle:90});
+    ch.series.forEach((s,k)=>{
+      const hex=CHART_COLORS[k%CHART_COLORS.length]; const rgb=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
+      doc.setDrawColor(...rgb);doc.setLineWidth(1.4);
+      if(s.type==="dehu") doc.setLineDashPattern([4,2],0);
+      let prev=null; s.vals.forEach((v,i)=>{ if(!isNum(v)){prev=null;return} const p=[xs(i),ys(v)]; if(prev) doc.line(prev[0],prev[1],p[0],p[1]); prev=p });
+      doc.setLineDashPattern([],0);
+      s.vals.forEach((v,i)=>{ if(isNum(v)){doc.setFillColor(255);doc.rect(xs(i)-2.5,ys(v)-2.5,5,5,"FD")} });
+    });
+    // legend
+    let lx=M+10, ly=y+chH+6; doc.setFontSize(7.5);doc.setTextColor(0);
+    ch.series.forEach((s,k)=>{const hex=CHART_COLORS[k%CHART_COLORS.length];const rgb=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));const w=doc.getTextWidth(s.label)+30; if(lx+w>M+cw-6){lx=M+10;ly+=11} doc.setDrawColor(...rgb);doc.setLineWidth(2);doc.line(lx,ly,lx+14,ly);doc.text(s.label,lx+18,ly+2.5);lx+=w});
+    y+=chH+40+10;
+  } else { doc.setFont("times","normal");doc.setFontSize(9);doc.text("No atmospheric readings recorded.",M+6,y+12);y+=24 }
+  r.sections.slice(4).forEach(drawSection);
+  if(job.notes){ secTitle("Notes"); doc.setFont("times","normal");doc.setFontSize(9); const l=doc.splitTextToSize(job.notes,W-2*M-12); if(y+l.length*11>H-40){doc.addPage();y=M} doc.text(l,M+6,y+12); y+=l.length*11+16 }
+  if(y>H-120){doc.addPage();y=M}
+  y+=46; doc.setDrawColor(0);doc.setLineWidth(.7);doc.setFont("times","normal");doc.setFontSize(8.5);
+  const sig=(x,w,label,yy)=>{doc.line(x,yy,x+w,yy);doc.text(label,x,yy+10)};
+  sig(M,320,"Technician signature",y); sig(M+360,190,"Date",y);
+  sig(M,320,"Printed name",y+40); sig(M+360,190,"IICRC cert. #",y+40);
+  const n=doc.getNumberOfPages();
+  for(let i=1;i<=n;i++){doc.setPage(i);doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.setTextColor(110);
+    doc.text(`${job.customer||""}${job.claim?"  |  Claim "+job.claim:""}`,M,H-16);
+    doc.text(`${APP}  |  Page ${i} of ${n}`,W-M,H-16,{align:"right"});doc.setTextColor(0)}
+  return doc;
+}
+
+/* ---------- tech, backup, modal ---------- */
+function backupMenu(){
+  modal(`<h2>Backup</h2><p class="small muted">Download every job as a file you can keep, or restore jobs from a backup file. Restoring keeps the newer copy of each job.</p>
+    <div class="row"><button class="btn" id="m_exp">Download backup</button><label class="btn sec" style="display:inline-block">Restore from file<input type="file" id="m_imp" accept=".json,application/json" style="display:none"></label><span class="grow"></span><button class="btn sec" onclick="closeModal()">Close</button></div>`);
+  $("#m_exp").onclick=()=>{const data=JSON.stringify({app:APP,exported:new Date().toISOString(),jobs:state.jobs},null,1);saveFile(`WedryTrack_backup_${today()}.json`,new Blob([data],{type:"application/json"}))};
+  $("#m_imp").onchange=async e=>{
+    const f=e.target.files[0]; if(!f) return;
+    try{
+      const d=JSON.parse(await f.text()); const jobs=d.jobs||{}; let n=0;
+      for(const id in jobs){const j=jobs[id]; if(!j||!j.id||!Array.isArray(j.rooms)) continue; const cur=state.jobs[j.id]; if(!cur||(j.updatedAt||0)>(cur.updatedAt||0)){state.jobs[j.id]=normalizeJob(j); if(!state.dirty.includes(j.id))state.dirty.push(j.id); n++}}
+      saveLocal(); Sync.schedule(300); closeModal(); render(); toast(`Restored ${n} job${n===1?"":"s"}`);
+    }catch(err){toast("That file is not a WedryTrack backup")}
+  };
+}
+function modal(html){ $("#modal").innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal" role="dialog" aria-modal="true">${html}</div></div>`; }
+function closeModal(){ $("#modal").innerHTML=""; if(ui.pendingRender){ui.pendingRender=false;render()} }
+function confirmBox(msg,onYes){
+  modal(`<h2>Are you sure?</h2><p>${msg}</p><div class="row"><span class="grow"></span><button class="btn sec" onclick="closeModal()">Cancel</button><button class="btn danger" id="m_yes">Delete</button></div>`);
+  $("#m_yes").onclick=()=>{closeModal();onYes()};
+}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("#modal").innerHTML)closeModal()});
+
+/* ---------- boot ---------- */
+loadLocal();
+if(sb){ Sync.init().then(render) } else { render(); if(!state.tech) setTimeout(editTech,300) }
+window.addEventListener("online",renderSyncChip);window.addEventListener("offline",renderSyncChip);
+if("serviceWorker" in navigator && location.protocol==="https:" && window.self===window.top){
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
+</script>
+</body>
+</html>

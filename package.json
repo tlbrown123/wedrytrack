@@ -1,0 +1,10 @@
+{
+  "name": "wedrytrack",
+  "private": true,
+  "description": "WedryTrack 1.0 drying log PWA for weDRY Restoration",
+  "devDependencies": {
+    "@supabase/supabase-js": "2.119.0",
+    "jspdf": "2.5.2",
+    "jspdf-autotable": "3.8.4"
+  }
+}
