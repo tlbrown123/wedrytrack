@@ -899,6 +899,8 @@ function pointForm(roomId,pid){
       <label class="f">Dry standard reading<input id="m_std" inputmode="decimal" value="${isNum(p.standard)?p.standard:""}" placeholder="same material, unaffected"></label>
       <label class="f">Dry goal<input id="m_goal" inputmode="decimal" value="${isNum(p.goal)?p.goal:""}" placeholder="defaults to standard"></label>
     </div>
+    ${pid?"":`<label class="f">Today's reading (wet)<input id="m_wet" inputmode="decimal" placeholder="optional, saved for ${fmtDate(today())}"></label>
+    <div class="small muted" style="margin:-4px 0 10px">Readings for later visits go on the <b>Readings</b> tab.</div>`}
     <label class="f">Dry standard taken at<input id="m_gn" value="${esc(p.goalNote||"")}" placeholder="e.g. Hall closet, same wall"></label>
     <div class="small muted" id="m_hint" style="margin:-4px 0 10px"></div>
     ${pid?`<label class="f">Removed (tear-out) date<input type="date" id="m_rem" value="${esc(p.removed||"")}"></label><div class="small muted" style="margin:-4px 0 10px">Set this when the material is removed. The point stops counting toward dry and the log shows "Removed" from that date.</div>`:""}
@@ -918,6 +920,9 @@ function pointForm(roomId,pid){
     if($("#m_rem")) p.removed=$("#m_rem").value||"";
     p.goalNote=$("#m_gn").value.trim();
     if(!p.label){toast("Enter a location");return false}
+    const wv=$("#m_wet")?$("#m_wet").value.trim():""; const w=numOrNull(wv);
+    if(wv&&w===null){toast("Today's reading must be a number");return false}
+    if(w!==null){ const d=today(); job.readings[p.id]=job.readings[p.id]||{}; job.readings[p.id][d]={v:w,tech:state.tech||"",at:Date.now()}; recordVisit(job,d) }
     const i=job.points.findIndex(x=>x.id===p.id); if(i>=0) job.points[i]=p; else job.points.push(p);
     job.nextPoint=Math.max(job.nextPoint||1,...job.points.map(x=>x.num+1));
     touch(job); return true;
