@@ -21,4 +21,5 @@ saves on the phone, and syncs to Supabase when a signal comes back.
 ## Adding a user
 
 Supabase dashboard > Authentication > Users > Add user > Create new user, tick Auto Confirm.
-Then in the app: account chip > Manage users to set their name and role.
+Then in the app: account chip > Manage users, tick Active, set their name and role. New accounts
+start inactive so a stranger who signs up on their own sees nothing.

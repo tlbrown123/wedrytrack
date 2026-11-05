@@ -12,14 +12,18 @@ create table if not exists public.profiles (
   created_at timestamptz not null default now()
 );
 
--- Every new login gets a profile. The very first person becomes admin.
+-- Every new login gets a profile. The very first person becomes an active admin.
+-- Everyone after that starts inactive until an admin turns them on in the app (Manage users),
+-- so a stranger who signs up on their own sees nothing.
 create or replace function public.handle_new_user() returns trigger
 language plpgsql security definer set search_path = public as $$
+declare first_user boolean := not exists (select 1 from public.profiles);
 begin
-  insert into public.profiles (id, email, name, role)
+  insert into public.profiles (id, email, name, role, active)
   values (
     new.id, new.email, split_part(new.email, '@', 1),
-    case when exists (select 1 from public.profiles) then 'tech' else 'admin' end
+    case when first_user then 'admin' else 'tech' end,
+    first_user
   )
   on conflict (id) do nothing;
   return new;
@@ -30,10 +34,10 @@ create trigger on_auth_user_created after insert on auth.users
   for each row execute function public.handle_new_user();
 
 -- Catch up anyone who signed up before this script ran.
-insert into public.profiles (id, email, name, role)
-select u.id, u.email, split_part(u.email, '@', 1), 'tech' from auth.users u
+insert into public.profiles (id, email, name, role, active)
+select u.id, u.email, split_part(u.email, '@', 1), 'tech', false from auth.users u
 on conflict (id) do nothing;
-update public.profiles set role = 'admin'
+update public.profiles set role = 'admin', active = true
 where not exists (select 1 from public.profiles where role = 'admin')
   and id = (select id from public.profiles order by created_at limit 1);
 

@@ -436,7 +436,7 @@ async function usersAdmin(){
   const { data, error } = await sb.from("profiles").select("id,email,name,role,active").order("created_at");
   if(error){toast("Could not load users");return}
   modal(`<h2>Users</h2>
-    <p class="small muted">To add someone: Supabase dashboard, Authentication, Users, Add user, Create new user (tick Auto Confirm). They show up here after that. Set their name and role here.</p>
+    <p class="small muted">To add someone: Supabase dashboard, Authentication, Users, Add user, Create new user (tick Auto Confirm). They show up here after they are added. New people start inactive: tick Active, set their name and role, and Save.</p>
     <div style="max-height:55vh;overflow:auto">${data.map(u=>`<div class="card" style="padding:8px;margin:6px 0" data-u="${u.id}">
       <div class="small muted">${esc(u.email||"")}</div>
       <div class="grid2"><label class="f">Name<input data-k="name" value="${esc(u.name)}"></label>
