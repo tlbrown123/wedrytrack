@@ -20,6 +20,13 @@ saves on the phone, and syncs to Supabase when a signal comes back.
 
 ## Adding a user
 
-Supabase dashboard > Authentication > Users > Add user > Create new user, tick Auto Confirm.
-Then in the app: account chip > Manage users, tick Active, set their name and role. New accounts
-start inactive so a stranger who signs up on their own sees nothing.
+Admins: account chip > Manage users > Add user. Enter email, name, role and a starting password
+(one is filled in). The account is ready to sign in right away. This runs through `api/add-user.js`,
+a Vercel function that checks the caller is an active admin.
+
+One-time setup: in Vercel > Settings > Environment Variables, add `SUPABASE_SECRET_KEY` with the
+secret key from Supabase > Project Settings > API Keys, then redeploy. It stays on the server.
+
+Without that setting you can still add people the old way: Supabase dashboard > Authentication >
+Users > Add user (Auto Confirm), then tick Active in Manage users. New accounts that sign up on
+their own start inactive so a stranger sees nothing.

@@ -436,7 +436,7 @@ async function usersAdmin(){
   const { data, error } = await sb.from("profiles").select("id,email,name,role,active").order("created_at");
   if(error){toast("Could not load users");return}
   modal(`<h2>Users</h2>
-    <p class="small muted">To add someone: Supabase dashboard, Authentication, Users, Add user, Create new user (tick Auto Confirm). They show up here after they are added. New people start inactive: tick Active, set their name and role, and Save.</p>
+    <div class="row" style="margin:0 0 6px"><span class="small muted grow">Untick Active to turn someone off. Their past readings stay.</span><button class="btn sm" onclick="addUser()">Add user</button></div>
     <div style="max-height:55vh;overflow:auto">${data.map(u=>`<div class="card" style="padding:8px;margin:6px 0" data-u="${u.id}">
       <div class="small muted">${esc(u.email||"")}</div>
       <div class="grid2"><label class="f">Name<input data-k="name" value="${esc(u.name)}"></label>
@@ -452,6 +452,41 @@ async function usersAdmin(){
       if(error){toast(error.message,4000);return}
     }
     closeModal(); toast("Users saved"); Sync.schedule(0);
+  };
+}
+
+function newPassword(){
+  const c="abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789", a=new Uint32Array(10);
+  crypto.getRandomValues(a); return Array.from(a,x=>c[x%c.length]).join("");
+}
+function addUser(){
+  if(!navigator.onLine){toast("Connect to the internet to add a user");return}
+  modal(`<h2>Add user</h2>
+    <label class="f">Email<input id="au_e" type="email" autocomplete="off" autocapitalize="off"></label>
+    <label class="f">Name<input id="au_n" autocomplete="off"></label>
+    <label class="f">Role<select id="au_r"><option value="tech">Tech</option><option value="admin">Admin</option></select></label>
+    <label class="f">Starting password (give this to them; they can change it under the account chip)<input id="au_p" value="${newPassword()}" autocomplete="off" autocapitalize="off"></label>
+    <div class="row"><span class="grow"></span><button class="btn sec" onclick="usersAdmin()">Back</button><button class="btn" id="m_ok">Add user</button></div>`);
+  setTimeout(()=>$("#au_e")?.focus(),50);
+  $("#m_ok").onclick=async()=>{
+    const email=$("#au_e").value.trim(), name=$("#au_n").value.trim(), role=$("#au_r").value, password=$("#au_p").value;
+    if(!email){toast("Enter their email");return}
+    if(password.length<8){toast("Starting password must be at least 8 characters");return}
+    const btn=$("#m_ok"); btn.disabled=true; btn.textContent="Adding…";
+    let out={};
+    try{
+      const { data } = await sb.auth.getSession();
+      const r = await fetch("/api/add-user",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+(data.session?.access_token||"")},body:JSON.stringify({email,name,role,password})});
+      out = await r.json().catch(()=>({error:"Could not add the user (server error "+r.status+")"}));
+      if(!r.ok) throw new Error(out.error||"Could not add the user");
+    }catch(e){ toast(e.message||"Could not add the user",5000); btn.disabled=false; btn.textContent="Add user"; return }
+    modal(`<h2>User added</h2>
+      <p>${esc(out.email||email)} can sign in now${out.warning?"":` as ${role==="admin"?"an admin":"a tech"}`}.</p>
+      ${out.warning?`<p class="small"><b>${esc(out.warning)}</b></p>`:""}
+      <p>Send them:</p>
+      <div class="card" style="padding:8px"><div>App: <b>${esc(location.origin)}</b></div><div>Email: <b>${esc(out.email||email)}</b></div><div>Password: <b>${esc(password)}</b></div></div>
+      <p class="small muted">Write the password down now. It is not shown again.</p>
+      <div class="row"><span class="grow"></span><button class="btn" onclick="usersAdmin()">Done</button></div>`);
   };
 }
 
