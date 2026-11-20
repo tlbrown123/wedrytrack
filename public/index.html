@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b4f8a">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="WedryTrack">
-<title>WedryTrack 1.0</title>
+<meta name="apple-mobile-web-app-title" content="weDRY Track">
+<title>weDRY Track</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -540,8 +540,8 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 <script src="config.js"></script>
 <script>
 "use strict";
-/* ===================== WedryTrack 1.0 ===================== */
-const APP = "WedryTrack 1.0";
+/* ===================== weDRY Track 1.0 ===================== */
+const APP = "weDRY Track 1.0";
 const LS_KEY = "wedrytrack.v1";
 const MATERIALS = ["Drywall","Framing","Wood subfloor","Hardwood","Laminate","Tile","Carpet","Carpet pad","Concrete","Plaster","Cabinetry","Other"];
 const METERS = ["GE/Protimeter/MMS2","Protimeter Surveymaster","Delmhorst BD-2100","Tramex ME5","Tramex MRH III"];
@@ -834,7 +834,7 @@ function editTech(){
   };
   $("#m_out").onclick=()=>{
     const n=state.dirty.length;
-    modal(`<h2>Sign out?</h2><p>${n?`<b>${n} job${n===1?" has":"s have"} changes not yet synced.</b> Connect to the internet and wait for "Synced" first, or they will be lost from this device.`:"Your jobs are synced."} Signing out removes WedryTrack data from this device.</p>
+    modal(`<h2>Sign out?</h2><p>${n?`<b>${n} job${n===1?" has":"s have"} changes not yet synced.</b> Connect to the internet and wait for "Synced" first, or they will be lost from this device.`:"Your jobs are synced."} Signing out removes weDRY Track data from this device.</p>
       <div class="row"><span class="grow"></span><button class="btn sec" onclick="closeModal()">Cancel</button><button class="btn danger" id="m_yes">Sign out</button></div>`);
     $("#m_yes").onclick=async()=>{
       try{ await sb.auth.signOut() }catch(e){}
@@ -1546,14 +1546,18 @@ function reportDoc(job){
     sum.push([cell(room.name,{bg:"group",span:6})]);
     const groups=new Map();
     for(const p of pts){const k=[p.material,p.meter,p.mtype,p.goal].join("|"); if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(p)}
-    for(const [,gp] of groups){
+    // Rows in date order (oldest visit first), then by material in point order
+    const rows=[];
+    [...groups.values()].forEach((gp,gi)=>{
       const p0=gp[0];
-      for(const d of m.mDates){
-        const vals=gp.map(p=>readingOn(job,p.id,d)).filter(isNum); if(!vals.length) continue;
+      m.mDates.forEach((d,di)=>{
+        const vals=gp.map(p=>readingOn(job,p.id,d)).filter(isNum); if(!vals.length) return;
         const avg=vals.reduce((a,b)=>a+b,0)/vals.length; const st=cellState(avg,p0.goal);
-        sum.push([vlabel(m,d),p0.material,p0.meter||"",p0.mtype||"",isNum(p0.goal)?p0.goal:"",cell(Number.isInteger(avg)?avg:avg.toFixed(1),{bg:st,b:true})]);
-      }
-    }
+        rows.push({d,di,gi,row:[vlabel(m,d),p0.material,p0.meter||"",p0.mtype||"",isNum(p0.goal)?p0.goal:"",cell(Number.isInteger(avg)?avg:avg.toFixed(1),{bg:st,b:true})]});
+      });
+    });
+    rows.sort((a,b)=>a.di-b.di||a.gi-b.gi);
+    for(const r of rows) sum.push(r.row);
   }
   doc.sections.push({title:"Moisture Readings Summary",tables:[{head:["Visit","Material","Meter","Type","Goal","Avg"],body:sum,empty:"No moisture readings recorded.",widths:{0:80,4:40,5:40}}],
     note:"Avg is the average of all points of the same material, meter and type in the room for that visit. Green is at or below goal, red is above."});
@@ -1733,14 +1737,14 @@ function buildPdf(job){
 function backupMenu(){
   modal(`<h2>Backup</h2><p class="small muted">Download every job as a file you can keep, or restore jobs from a backup file. Restoring keeps the newer copy of each job.</p>
     <div class="row"><button class="btn" id="m_exp">Download backup</button><label class="btn sec" style="display:inline-block">Restore from file<input type="file" id="m_imp" accept=".json,application/json" style="display:none"></label><span class="grow"></span><button class="btn sec" onclick="closeModal()">Close</button></div>`);
-  $("#m_exp").onclick=()=>{const data=JSON.stringify({app:APP,exported:new Date().toISOString(),jobs:state.jobs},null,1);saveFile(`WedryTrack_backup_${today()}.json`,new Blob([data],{type:"application/json"}))};
+  $("#m_exp").onclick=()=>{const data=JSON.stringify({app:APP,exported:new Date().toISOString(),jobs:state.jobs},null,1);saveFile(`weDRYTrack_backup_${today()}.json`,new Blob([data],{type:"application/json"}))};
   $("#m_imp").onchange=async e=>{
     const f=e.target.files[0]; if(!f) return;
     try{
       const d=JSON.parse(await f.text()); const jobs=d.jobs||{}; let n=0;
       for(const id in jobs){const j=jobs[id]; if(!j||!j.id||!Array.isArray(j.rooms)) continue; const cur=state.jobs[j.id]; if(!cur||(j.updatedAt||0)>(cur.updatedAt||0)){state.jobs[j.id]=normalizeJob(j); if(!state.dirty.includes(j.id))state.dirty.push(j.id); n++}}
       saveLocal(); Sync.schedule(300); closeModal(); render(); toast(`Restored ${n} job${n===1?"":"s"}`);
-    }catch(err){toast("That file is not a WedryTrack backup")}
+    }catch(err){toast("That file is not a weDRY Track backup")}
   };
 }
 function modal(html){ $("#modal").innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal" role="dialog" aria-modal="true">${html}</div></div>`; }
